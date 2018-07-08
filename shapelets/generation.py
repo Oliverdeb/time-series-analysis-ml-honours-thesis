@@ -14,7 +14,7 @@ class Generation:
         s = len(series)
 
         # make min = max_int, index = 0, slice = []
-        (min_dist, min_dist_index, slice) = (np.iinfo(np.int32)).max, 0, []
+        (min_dist, min_dist_index, _slice) = (np.iinfo(np.int32)).max, 0, []
 
         # for 0 up to length of series - length of shapelet + 1
         for i in range(s - l + 1):
@@ -22,9 +22,9 @@ class Generation:
             dist = euclidean(shapelet, current_slice) # dist between shapelet and window
             if dist < min_dist:
                 # update best match so far
-                (min_dist, min_dist_index, slice) = dist, i, current_slice
+                (min_dist, min_dist_index, _slice) = dist, i, current_slice
 
-        return (min_dist, min_dist_index, slice)
+        return (min_dist, min_dist_index, _slice)
 
                 
 

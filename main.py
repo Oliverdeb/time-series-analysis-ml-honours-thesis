@@ -19,7 +19,7 @@ def main():
 
     # print (k)
 
-    series_cutoff = 1000
+    series_cutoff = 300
 
     _min = 15
     _max = 16
@@ -37,21 +37,15 @@ def main():
 
         for l in range(_min, _max + 1):
             W_i_j = util.generate_candidates(dataset, _min, _max)
-            # print ("len candidates", len(W_i_j))
-            # print ("empty is ", [] in W_i_j)
 
             for w in W_i_j:
-                # print ("candidate", w)
                 all_mse = util.find_mse(w, W_i_j)
                 all_mse.sort()
                 w.quality = sum ( all_mse[:6])
                 shapelets.append( w )
 
-        # TODO: remove similar, ie overlap and from same series
-        # shapelets = util.remove_similar(shapelets)
-        shapelets = util.remove_all_similar(shapelets, (_min + _max) / 3.0)
+        shapelets = util.remove_all_similar(shapelets, (_min + _max) / 4.0)
         shapelets.sort(key = lambda x: x.quality)
-
         k_shapelets = util.merge(k, k_shapelets, shapelets)
     
     print ("%d shapelets found" % (len(k_shapelets)))

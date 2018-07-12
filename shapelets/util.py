@@ -1,7 +1,6 @@
 from shapelets.shapelet import Shapelet
 
 import numpy as np
-from scipy.spatial.distance import euclidean
 
 class util:
     def __init__(self):
@@ -46,10 +45,10 @@ class util:
 
     @staticmethod
     def remove_all_similar(shapelets, threshold):
-        from copy import deepcopy
-        shapes = deepcopy(shapelets)
-        shapes.sort(key= lambda x: x.start_index)
-        return util.remove_similar(shapes, threshold)
+        # from copy import deepcopy
+        # shapes = deepcopy(shapelets)
+        shapelets.sort(key= lambda x: x.start_index)
+        return util.remove_similar(shapelets, threshold)
 
     @staticmethod
     def merge(k, k_shapelets, shapelets):
@@ -77,6 +76,8 @@ class util:
     # TODO: improve to use "sufficient statistics", as per Logical shapelets and "A discriminative shapelets transformation for time series classification"
     @staticmethod
     def subsequence_distance(series, shapelet):
+        from scipy.spatial.distance import euclidean
+
         l = len(shapelet)
         s = len(series)
 
@@ -102,12 +103,10 @@ class util:
     def find_mse(candidate, shapelets):
         return [util.subsequence_distance(shapelet.shapelet, candidate.shapelet) for shapelet in shapelets]
 
-
     @staticmethod
     def normalize(series):
-        mean = np.mean(series)
-        sd = np.std(series)
-        return [ ( x - mean) / sd for x in series ]
+        from scipy.stats import zscore
+        return zscore(series)
 
     @staticmethod
     def distance(shapelet, series): 

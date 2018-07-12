@@ -19,33 +19,43 @@ def main():
 
     # print (k)
 
+    series_cutoff = 1000
 
     _min = 15
     _max = 16
-    sets = [series[:100]]
+    # print ("before",series)
+    # series = util.normalize(series[:series_cutoff])
+    # import numpy as np
+    # series = [np.log(x) for x in series[:series_cutoff]]
+    series = series[:series_cutoff]
+    # print ("after", series)
+    sets = [series]
     k_shapelets = []
-    k = 10
+    k = 20
     for dataset in sets:
         shapelets = []
 
-        for l in range(_min, _max):
+        for l in range(_min, _max + 1):
             W_i_j = util.generate_candidates(dataset, _min, _max)
             # print ("len candidates", len(W_i_j))
             # print ("empty is ", [] in W_i_j)
 
             for w in W_i_j:
                 # print ("candidate", w)
-                all_mse = util.find_mse(w.shapelet, W_i_j)
+                all_mse = util.find_mse(w, W_i_j)
                 all_mse.sort()
-                quality = sum ( all_mse[:6])
-                shapelets.append( (w, quality) )
+                w.quality = sum ( all_mse[:6])
+                shapelets.append( w )
 
-        shapelets.sort(key = lambda x: x[1])
         # TODO: remove similar, ie overlap and from same series
+        # shapelets = util.remove_similar(shapelets)
+        shapelets = util.remove_all_similar(shapelets, (_min + _max) / 3.0)
+        shapelets.sort(key = lambda x: x.quality)
+
         k_shapelets = util.merge(k, k_shapelets, shapelets)
     
-    print (k_shapelets)
-    util.graph(series[:100], k_shapelets)
+    print ("%d shapelets found" % (len(k_shapelets)))
+    util.graph(series[:series_cutoff], k_shapelets[:k])
 
 
 

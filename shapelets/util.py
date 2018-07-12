@@ -1,11 +1,11 @@
 from shapelets.shapelet import Shapelet
+
 import numpy as np
 from scipy.spatial.distance import euclidean
 
 class util:
-    def __init__(self, series):
-        self.mean = np.mean(series)
-        self.var = np.var(series)
+    def __init__(self):
+        pass
 
     @staticmethod
     def graph(series, shapelets):
@@ -15,22 +15,45 @@ class util:
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.scatter(range(len(series)), series, c='b', marker='s', label='series')
-        print ("are ", len(shapelets), " shapelets")
-        colors = cm.rainbow(np.linspace(0,1, len(shapelets)))
+
+        colors = cm.rainbow(np.linspace(0, 1, len(shapelets)))
 
         for (i,shapelet), c in zip(enumerate(shapelets), colors):
-            index = shapelet[0].start_index
-            to_plot = [x + 3 for x in shapelet[0].shapelet]
-            ax.scatter(range(index, index+len(shapelet[0].shapelet)), to_plot, c=c, marker='o', label='shapelet'+str(i))
+            index = shapelet.start_index
+            to_plot = [x for x in shapelet.shapelet]
+            ax.scatter(range(index, index+len(shapelet.shapelet)), to_plot, c=c, marker='o', label='shapelet'+str(i))
 
         
         plt.legend(loc='best')
 
         plt.show()
 
+
+    @staticmethod
+    def remove_similar(shapelets, threshold):
+        new_s = []
+        index = 0
+        for i in range(1, len(shapelets)):
+
+            if shapelets[i].start_index - shapelets[index].start_index < threshold:
+                if shapelets[index] > shapelets[i]:
+                    # if i has a better quality, ie lower, set new index
+                    index = i
+            else:
+                new_s.append(shapelets[index])
+                index = i
+        return new_s
+
+    @staticmethod
+    def remove_all_similar(shapelets, threshold):
+        from copy import deepcopy
+        shapes = deepcopy(shapelets)
+        shapes.sort(key= lambda x: x.start_index)
+        return util.remove_similar(shapes, threshold)
+
     @staticmethod
     def merge(k, k_shapelets, shapelets):
-        k_shapelets.sort(key = lambda x: x[1])
+        k_shapelets.sort(key = lambda x: x.quality)
 
         k_index = 0
         for i in range (len (shapelets)):
@@ -41,7 +64,7 @@ class util:
                 k_index += 1
         if k_index < len(k_shapelets):
             shapelets =  shapelets + k_shapelets[k_index:]
-        return shapelets[:k]
+        return shapelets
 
     @staticmethod
     def generate_candidates(dataset, _min, _max):
@@ -57,6 +80,12 @@ class util:
         l = len(shapelet)
         s = len(series)
 
+        diff = shapelet[0] - series[0]
+        if diff < 0:
+            shapelet = [x + -diff for x in shapelet]
+        else:
+            shapelet = [x - diff for x in shapelet]
+
         # make min = max_int, index = 0, slice = []
         (min_dist, min_dist_index, _slice) = (np.iinfo(np.int32)).max, 0, []
 
@@ -67,18 +96,18 @@ class util:
             if dist < min_dist:
                 # update best match so far
                 (min_dist, min_dist_index, _slice) = dist, i, current_slice
-
         return min_dist
 
     @staticmethod
     def find_mse(candidate, shapelets):
-        return [util.subsequence_distance(shapelet.shapelet, candidate) for shapelet in shapelets]
+        return [util.subsequence_distance(shapelet.shapelet, candidate.shapelet) for shapelet in shapelets]
 
 
     @staticmethod
-    def normalize():
-        sd = np.sqrt(self.var)
-        self.series_normalized = [ ( x - self.mean) / self.sd for x in self.series ]
+    def normalize(series):
+        mean = np.mean(series)
+        sd = np.std(series)
+        return [ ( x - mean) / sd for x in series ]
 
     @staticmethod
     def distance(shapelet, series): 

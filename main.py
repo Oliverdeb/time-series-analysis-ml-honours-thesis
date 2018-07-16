@@ -1,6 +1,6 @@
-from utils.Utils import Utils
 from shapelets.shapelet import Shapelet
-from shapelets.util import util
+from shapelets.shapelet_utils import shapelet_utils
+import time
 
 def main():
     # shapelet_classifier = Shapelet()
@@ -18,11 +18,11 @@ def main():
     # print ('b' , [arr[1] for arr in b])
 
     # print (k)
-
-    series_cutoff = 300
+    t = time.time()
+    series_cutoff = 1000
 
     _min = 15
-    _max = 16
+    _max = 20
     # print ("before",series)
     # series = util.normalize(series[:series_cutoff])
     # import numpy as np
@@ -31,25 +31,28 @@ def main():
     # print ("after", series)
     sets = [series]
     k_shapelets = []
-    k = 20
+    k = 100
     for dataset in sets:
         shapelets = []
 
-        for l in range(_min, _max + 1):
-            W_i_j = util.generate_candidates(dataset, _min, _max)
-
-            for w in W_i_j:
-                all_mse = util.find_mse(w, W_i_j)
-                all_mse.sort()
-                w.quality = sum ( all_mse[:6])
-                shapelets.append( w )
-
-        shapelets = util.remove_all_similar(shapelets, (_min + _max) / 4.0)
+        W_i_j = shapelet_utils.generate_candidates(dataset, _min, _max)
+        prog = len(W_i_j)
+        print ("Checking %d candidates" % prog)
+        for i,w in enumerate(W_i_j):
+            if i % 5 ==0 :
+                print ("\r%.2f" % (i/prog), end="")
+                print ("len of w ", len(w.shapelet))
+            all_mse = shapelet_utils.find_mse(w, W_i_j)
+            all_mse.sort()
+            w.quality = sum ( all_mse[:6])
+            shapelets.append( w )
+        print()
+        shapelets = shapelet_utils.remove_all_similar(shapelets, (_min + _max) / 4.0)
         shapelets.sort(key = lambda x: x.quality)
-        k_shapelets = util.merge(k, k_shapelets, shapelets)
+        k_shapelets = shapelet_utils.merge(k_shapelets, shapelets)
     
-    print ("%d shapelets found" % (len(k_shapelets)))
-    util.graph(series[:series_cutoff], k_shapelets[:k])
+    print ("%.2fs elapsed\n%d shapelets found" % (time.time() -t, len(k_shapelets)))
+    shapelet_utils.graph(series[:series_cutoff], k_shapelets[:k])
 
 
 

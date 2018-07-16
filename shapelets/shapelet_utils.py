@@ -2,7 +2,7 @@ from shapelets.shapelet import Shapelet
 
 import numpy as np
 
-class util:
+class shapelet_utils:
     def __init__(self):
         pass
 
@@ -48,22 +48,27 @@ class util:
         # from copy import deepcopy
         # shapes = deepcopy(shapelets)
         shapelets.sort(key= lambda x: x.start_index)
-        return util.remove_similar(shapelets, threshold)
+        return shapelet_utils.remove_similar(shapelets, threshold)
 
     @staticmethod
-    def merge(k, k_shapelets, shapelets):
-        k_shapelets.sort(key = lambda x: x.quality)
+    def merge(k_shapelets, shapelets):
+        # k_shapelets.sort(key = lambda x: x.quality)
 
-        k_index = 0
-        for i in range (len (shapelets)):
-            if k_index == len(k_shapelets):
-                break
-            if k_shapelets[k_index] < shapelets[i]:
-                shapelets.insert(i, k_shapelets[k_index])
-                k_index += 1
-        if k_index < len(k_shapelets):
-            shapelets =  shapelets + k_shapelets[k_index:]
-        return shapelets
+        k_i = 0
+        s_i = 0
+        merged = []
+        while k_i < len(k_shapelets) and s_i < len(shapelets):
+            if k_shapelets[k_i] < shapelets[s_i]:
+                merged.append(k_shapelets[k_i])
+                k_i += 1
+            else:
+                merged.append(shapelets[s_i])
+                s_i += 1
+        if k_i == len(k_shapelets):
+            merged += shapelets[s_i:]
+        else:
+            merged += k_shapelets[k_i:]
+        return merged
 
     @staticmethod
     def generate_candidates(dataset, _min, _max):
@@ -101,7 +106,7 @@ class util:
 
     @staticmethod
     def find_mse(candidate, shapelets):
-        return [util.subsequence_distance(shapelet.shapelet, candidate.shapelet) for shapelet in shapelets]
+        return [shapelet_utils.subsequence_distance(shapelet.shapelet, candidate.shapelet) for shapelet in shapelets]
 
     @staticmethod
     def normalize(series):

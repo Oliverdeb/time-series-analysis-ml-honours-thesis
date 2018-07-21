@@ -1,4 +1,5 @@
 from shapelets.shapelet import Shapelet
+from scipy.spatial.distance import euclidean
 
 import numpy as np
 
@@ -71,42 +72,27 @@ class shapelet_utils:
         return merged
 
     @staticmethod
-    def generate_candidates(dataset, _min, _max):
+    def generate_candidates(dataset, window_size):
         candidates = []
-        for l in range(_min, _max):
-            for i in range(len(dataset) - l + 1):
-                candidates.append(Shapelet(dataset[i:i+l], i))
+        for i in range(len(dataset) - window_size + 1):
+            candidates.append(Shapelet(dataset[i:i+window_size], i))
         return candidates
 
     # TODO: improve to use "sufficient statistics", as per Logical shapelets and "A discriminative shapelets transformation for time series classification"
     @staticmethod
-    def subsequence_distance(series, shapelet):
-        from scipy.spatial.distance import euclidean
+    def subsequence_distance(fst, snd):
 
-        l = len(shapelet)
-        s = len(series)
+        diff = snd[0] - fst[0]
+        diff = - diff if diff < 0 else diff   
+        
+        shapelet = [x + diff for x in snd] if diff != 0 else snd
 
-        diff = shapelet[0] - series[0]
-        if diff < 0:
-            shapelet = [x + -diff for x in shapelet]
-        else:
-            shapelet = [x - diff for x in shapelet]
-
-        # make min = max_int, index = 0, slice = []
-        (min_dist, min_dist_index, _slice) = (np.iinfo(np.int32)).max, 0, []
-
-        # for 0 up to length of series - length of shapelet + 1
-        for i in range(s - l + 1):
-            current_slice = series[i:i+l] # current window
-            dist = euclidean(shapelet, current_slice) # dist between shapelet and window
-            if dist < min_dist:
-                # update best match so far
-                (min_dist, min_dist_index, _slice) = dist, i, current_slice
-        return min_dist
+        dist = euclidean(shapelet, fst) 
+        return dist / len(snd)
 
     @staticmethod
-    def find_mse(candidate, shapelets):
-        return [shapelet_utils.subsequence_distance(shapelet.shapelet, candidate.shapelet) for shapelet in shapelets]
+    def find_mse(fst, snd):
+        return [shapelet_utils.subsequence_distance(fst.shapelet, s.shapelet) for s in snd]
 
     @staticmethod
     def normalize(series):

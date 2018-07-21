@@ -1,6 +1,7 @@
 from shapelets.shapelet import Shapelet
 from shapelets.shapelet_utils import shapelet_utils
 import time
+from utils.Utils import Utils
 
 def main():
     # shapelet_classifier = Shapelet()
@@ -21,8 +22,8 @@ def main():
     t = time.time()
     series_cutoff = 1000
 
-    _min = 15
-    _max = 20
+    _min = 12
+    _max = 30
     # print ("before",series)
     # series = util.normalize(series[:series_cutoff])
     # import numpy as np
@@ -31,23 +32,23 @@ def main():
     # print ("after", series)
     sets = [series]
     k_shapelets = []
-    k = 100
+    k = 20
     for dataset in sets:
         shapelets = []
+        for l in range(_min, _max + 1):            
+            candidates_i_l = shapelet_utils.generate_candidates(dataset, l)
+            prog = len(candidates_i_l)
 
-        W_i_j = shapelet_utils.generate_candidates(dataset, _min, _max)
-        prog = len(W_i_j)
-        print ("Checking %d candidates" % prog)
-        for i,w in enumerate(W_i_j):
-            if i % 5 ==0 :
-                print ("\r%.2f" % (i/prog), end="")
-                print ("len of w ", len(w.shapelet))
-            all_mse = shapelet_utils.find_mse(w, W_i_j)
-            all_mse.sort()
-            w.quality = sum ( all_mse[:6])
-            shapelets.append( w )
+            print ("Checking candidates of length %d, %d candidates" % (l, prog))
+            for i,w in enumerate(candidates_i_l):
+                if i % 11 ==0 :
+                    print ("\r%.2f" % (i/prog), end="")
+                all_mse = shapelet_utils.find_mse(w, candidates_i_l)
+                all_mse.sort()
+                w.quality = sum ( all_mse[:6])
+                shapelets.append( w )
         print()
-        shapelets = shapelet_utils.remove_all_similar(shapelets, (_min + _max) / 4.0)
+        # shapelets = shapelet_utils.remove_all_similar(shapelets, (_min + _max) / 4.0)
         shapelets.sort(key = lambda x: x.quality)
         k_shapelets = shapelet_utils.merge(k_shapelets, shapelets)
     

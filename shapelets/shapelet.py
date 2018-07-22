@@ -10,6 +10,12 @@ class Shapelet:
 
     def __gt__(self, other):
         return self.quality > other.quality
+    
+    def tocsv(self):
+        s = str(self.shapelet[0])
+        for e in self.shapelet[1:]:
+            s += ',' + str(e)
+        return s
         
     def __str__(self):
         return "start index" + str(self.start_index) + " " +  str(self.shapelet)

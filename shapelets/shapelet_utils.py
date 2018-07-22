@@ -1,11 +1,34 @@
 from shapelets.shapelet import Shapelet
-from scipy.spatial.distance import euclidean
+from scipy.spatial.distance import sqeuclidean
 
 import numpy as np
 
 class shapelet_utils:
     def __init__(self):
         pass
+
+    @staticmethod
+    def percent_diff( series):
+        diff = []
+        for i in range(1,len(series)):
+            diff.append( (series[i] - series [i-1])) 
+        return diff
+
+    @staticmethod
+    def graph_classes(shapelets):
+        import matplotlib.pyplot as plt
+        import matplotlib.cm as cm
+        fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
+
+        for i,shapelet in enumerate(shapelets):
+            axes[i].set_title('shapelet' + str(i))
+            axes[i].scatter(range(len(shapelet.shapelet)), [y for y in shapelet.shapelet])
+            for j,similar_shapelet in enumerate(shapelet.of_same_class):
+                axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - (j)for y in similar_shapelet.shapelet])
+                
+        fig.tight_layout()
+
+        plt.show()
 
     @staticmethod
     def graph(series, shapelets):
@@ -18,12 +41,14 @@ class shapelet_utils:
 
         colors = cm.rainbow(np.linspace(0, 1, len(shapelets)))
 
-        for (i,shapelet), c in zip(enumerate(shapelets), colors):
-            index = shapelet.start_index
-            to_plot = [x for x in shapelet.shapelet]
-            ax.scatter(range(index, index+len(shapelet.shapelet)), to_plot, c=c, marker='o', label='shapelet'+str(i))
-
-        
+        # for (i,shapelet), c in zip(enumerate(shapelets), colors):
+        #     index = shapelet.start_index
+        #     to_plot = [y + (i+1) * 4 for y in shapelet.shapelet]
+        #     ax.scatter(range(index, index+len(shapelet.shapelet)), to_plot, c=c, marker='o', label='shapelet'+str(i))   
+        #     for j,similar_shapelet in enumerate(shapelet.of_same_class):
+        #         index = similar_shapelet.start_index
+        #         to_plot = [y + (i+2) * 4 + j  for y in similar_shapelet.shapelet]
+        #         ax.scatter(range(index, index+len(similar_shapelet.shapelet)), to_plot, c=c, marker='o', label='shapelet'+str(i))        
         plt.legend(loc='best')
 
         plt.show()
@@ -75,24 +100,22 @@ class shapelet_utils:
     def generate_candidates(dataset, window_size):
         candidates = []
         for i in range(len(dataset) - window_size + 1):
-            candidates.append(Shapelet(dataset[i:i+window_size], i))
+            candidates.append(Shapelet(np.array(dataset[i:i+window_size]), i))
         return candidates
 
     # TODO: improve to use "sufficient statistics", as per Logical shapelets and "A discriminative shapelets transformation for time series classification"
     @staticmethod
-    def subsequence_distance(fst, snd):
-
-        diff = snd[0] - fst[0]
-        diff = - diff if diff < 0 else diff   
-        
-        shapelet = [x + diff for x in snd] if diff != 0 else snd
-
-        dist = euclidean(shapelet, fst) 
+    def MSE(fst, snd):        
+        diff = - (snd[0] - fst[0])
+        shapelet = snd + diff if diff != 0 else snd
+        dist = sqeuclidean(shapelet, fst) 
         return dist / len(snd)
 
     @staticmethod
-    def find_mse(fst, snd):
-        return [shapelet_utils.subsequence_distance(fst.shapelet, s.shapelet) for s in snd]
+    def find_mse(candidate, shapelets):
+        return [(
+            shapelet_utils.MSE(candidate.shapelet, shapelet.shapelet) , shapelet
+        ) for shapelet in shapelets]
 
     @staticmethod
     def normalize(series):

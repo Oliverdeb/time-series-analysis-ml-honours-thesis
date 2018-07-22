@@ -53,11 +53,11 @@ def main():
                 # sort by distance
                 all_mse.sort (key = lambda s: s[0] )
                 
-                # set quality of this candidate to sum of the best 6 matches / distances
+                # set quality of this candidate to sum of the best N matches / distances
                 w.quality = sum (mse for mse, shapelet in all_mse[:n_candidates])
 
-                # store 6 best shapelets that matched
-                w.of_same_class = [shapelet for mse, shapelet in all_mse[:n_candidates]]
+                # store N best shapelets that matched in a set
+                w.of_same_class = {shapelet for mse, shapelet in all_mse[:n_candidates]}
 
                 # add candidate to list
                 shapelets.append( w )
@@ -68,8 +68,7 @@ def main():
 
     def boundary_check(right_shapelet, left_shapelet, thresh):
         if abs(right_shapelet.start_index - left_shapelet.start_index) <= thresh:
-            left_shapelet.of_same_class += right_shapelet.of_same_class
-            left_shapelet.of_same_class.append(right_shapelet)
+            left_shapelet.of_same_class.update(right_shapelet.of_same_class, [right_shapelet])
             return True
         return False
 

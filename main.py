@@ -24,8 +24,8 @@ def main():
     t = time.time()
     series_cutoff = 1000
 
-    _min = 25
-    _max = 60
+    _min = 20
+    _max = 30
     # print ("before",series)
     # series = shapelet_utils.normalize(series[:series_cutoff])
     # import numpy as np
@@ -34,7 +34,7 @@ def main():
     # print ("after", series)
     sets = [series]
     k_shapelets = []
-    k = 15
+    k = 10
     n_candidates = 15
     mse_threshold = 25
     quality_threshold = True
@@ -79,6 +79,7 @@ def main():
                 w.of_same_class = {shapelet for mse, shapelet in mse_and_shapelets[:n_candidates]}
 
             # add candidate to list
+            shapelets.append( w )
         print()
         # shapelets = shapelet_utils.remove_all_similar(shapelets, (_min + _max) / 5.0)
         shapelets.sort(key = lambda x: x.quality, reverse=quality_threshold)
@@ -119,11 +120,11 @@ def main():
     
     print ("%.2fs elapsed\n%d initial shapelets found\n%d after class check\n%d after combination" % (time.time() -t, len(k_shapelets), len(final), len(new_final)))
 
-    # with open('out.csv', 'w') as f:
-    #     for i,shapelet in enumerate(new_final):
-    #         f.write(str(i) + "," + shapelet.tocsv() + "\n")
-    #         for similar in shapelet.of_same_class:
-    #             f.write(str(i) + "," + similar.tocsv() + "\n")
+    with open('out.csv', 'w') as f:
+        for i,shapelet in enumerate(final):
+            f.write(str(i) + "," + shapelet.tocsv() + "\n")
+            for similar in shapelet.of_same_class:
+                f.write(str(i) + "," + similar.tocsv() + "\n")
 
 
     # shapelet_utils.graph(series[:series_cutoff], final[:k])
@@ -131,7 +132,7 @@ def main():
     # final.sort(key = lambda x: x.quality, reverse=quality_threshold)
 
     
-    shapelet_utils.graph_classes(final[:k], series[:series_cutoff])
+    shapelet_utils.graph_classes(final[40:55], series[:series_cutoff])
 
 
 

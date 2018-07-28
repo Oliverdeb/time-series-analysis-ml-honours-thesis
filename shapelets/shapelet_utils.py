@@ -23,11 +23,11 @@ class shapelet_utils:
         fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
 
         for i,shapelet in enumerate(shapelets):
-            axes[i].set_title('shapelet' + str(i))
+            axes[i].set_title('shapelet' + str(i) + "," + str(len(shapelet.of_same_class) + 1))
             even_y_values = np.linspace(0, _m, len(shapelet.of_same_class) + 1)
-            diff = - ( shapelet.shapelet[0] - even_y_values[0])
+            # diff = - ( shapelet.shapelet[0] - even_y_values[0])
             # diff = 0
-            axes[i].scatter(range(len(shapelet.shapelet)), shapelet.shapelet + diff if diff != 0 else shapelet.shapelet)
+            axes[i].scatter(range(len(shapelet.shapelet)), shapelet.shapelet)
 
 
             for j,similar_shapelet in enumerate(shapelet.of_same_class):
@@ -49,7 +49,7 @@ class shapelet_utils:
         i = 0
         n_candidates = len(shapelets)
         while(len(shapelets)>0):
-            if len(shapelets[0].of_same_class) < 6:
+            if len(shapelets[0].of_same_class) < 12:
                 break
             if i % 13 == 0:
                 print ("\rlen/n=%.2f, using i/n = %.2f" % (1- (len(shapelets) / n_candidates), i/n_candidates), end="")
@@ -61,6 +61,7 @@ class shapelet_utils:
 
             shapelets.sort(key = lambda x: x.quality, reverse=True)
             i += 1
+        print ()
         return final
 
     @staticmethod
@@ -107,7 +108,7 @@ class shapelet_utils:
 
             if shapelets[i].start_index - shapelets[index].start_index < threshold:
                 if shapelets[index] > shapelets[i]:
-                    # if i has a better quality, ie lower, set new index
+                    # if i has a better quality, ie high, set new index
                     index = i
             else:
                 new_s.append(shapelets[index])
@@ -162,7 +163,11 @@ class shapelet_utils:
     def find_new_mse(candidate, shapelets, threshold):
         return {
             shapelet
-         for shapelet in shapelets if shapelet.start_index != candidate.start_index and shapelet_utils.mse_dist(candidate.shapelet, shapelet.shapelet, threshold) }
+                for shapelet in shapelets 
+                # if  abs (shapelet.start_index - candidate.start_index) > 10
+                if abs (len(candidate.shapelet) - len(shapelet.shapelet)) <= 5
+                and shapelet_utils.mse_dist(candidate.shapelet, shapelet.shapelet, threshold) 
+        }
 
     @staticmethod
     def mse_dist(s1, s2, threshold):

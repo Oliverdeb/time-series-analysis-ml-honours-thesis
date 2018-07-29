@@ -36,7 +36,7 @@ def main():
     k_shapelets = []
     k = 10
     n_candidates = 15
-    mse_threshold = 25
+    mse_threshold = 20
     quality_threshold = True
     for dataset in sets:
         shapelets = []
@@ -132,7 +132,7 @@ def main():
     # final.sort(key = lambda x: x.quality, reverse=quality_threshold)
 
     
-    shapelet_utils.graph_classes(final[40:55], series[:series_cutoff])
+    shapelet_utils.graph_classes(final[:k], series[:series_cutoff])
 
 
 

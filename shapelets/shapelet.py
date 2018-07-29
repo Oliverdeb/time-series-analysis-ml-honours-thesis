@@ -14,7 +14,7 @@ class Shapelet:
     def tocsv(self):
         s = str(self.shapelet[0])
         for e in self.shapelet[1:]:
-            s += ',' + str(e)
+            s += ' ' + str(e)
         return s
         
     def __str__(self):

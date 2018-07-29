@@ -11,11 +11,20 @@ class Shapelet:
     def __gt__(self, other):
         return self.quality > other.quality
     
-    def tocsv(self):
-        s = str(self.shapelet[0])
-        for e in self.shapelet[1:]:
-            s += ' ' + str(e)
-        return s
+    def to_csv_offset_0(self):
+        offset = self.shapelet[0]
+        self.shapelet = self.shapelet - offset
+        csv = "0"
+
+        for elem in self.shapelet[1:]:
+            csv += ' ' + str(elem)
+        return csv
+
+    def to_csv(self):
+        csv = str(self.shapelet[0])
+        for elem in self.shapelet[1:]:
+            csv += ' ' + str(elem)
+        return csv
         
     def __str__(self):
         return "start index" + str(self.start_index) + " " +  str(self.shapelet)

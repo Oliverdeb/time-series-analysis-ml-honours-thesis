@@ -20,21 +20,25 @@ class shapelet_utils:
         import matplotlib.cm as cm
 
         _m = np.max(series)
+        _min = np.min(series)
+        print (_min, _m , " is here")
         fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
 
         for i,shapelet in enumerate(shapelets):
             axes[i].set_title('shapelet' + str(i) + "," + str(len(shapelet.of_same_class) + 1))
-            even_y_values = np.linspace(0, _m, len(shapelet.of_same_class) + 1)
+
+            even_y_values = np.linspace(_min, _m, 20 if len(shapelet.of_same_class) > 20 else len(shapelet.of_same_class))
             # diff = - ( shapelet.shapelet[0] - even_y_values[0])
             # diff = 0
             axes[i].scatter(range(len(shapelet.shapelet)), shapelet.shapelet)
 
 
-            for j,similar_shapelet in enumerate(shapelet.of_same_class):
+            for e, (j,similar_shapelet) in zip(even_y_values, enumerate(list(shapelet.of_same_class)[:20])):
                 # diff = - ( shapelet.shapelet[0] - even_y_values[0])
 
-                axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - (j*35)for y in similar_shapelet.shapelet])
-            axes[i].set_ylim([1300, 2600])
+                axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - j*35 for y in similar_shapelet.shapelet])
+            axes[i].set_ylim([-900 , 70])
+            # axes[i].set_ylim([-3, 3])
         
         fig.tight_layout()
         # plt.ylim(2000, 2400)
@@ -48,7 +52,7 @@ class shapelet_utils:
         set_of_shapelets_seen = set()
         i = 0
         n_candidates = len(shapelets)
-        while(len(shapelets)>0):
+        while(len(shapelets) > 0):
             if len(shapelets[0].of_same_class) < 12:
                 break
             if i % 13 == 0:
@@ -171,11 +175,11 @@ class shapelet_utils:
 
     @staticmethod
     def mse_dist(s1, s2, threshold):
-        
-        abs_diff = np.abs(s1[:len(s2)] - s2) if len(s1) > len(s2) else np.abs(s1 - s2[:len(s1)])
-
-        for elem in abs_diff:
-            if elem > threshold:
+        diff = - (s1[0] - s2[0])
+        shapelet = s2 + diff if diff != 0 else s2
+        shorter = len(s1) if len(s1) < len(s2) else len(s2)
+        for i in range(1, shorter):
+            if abs(s1[i] - shapelet[i]) > abs(threshold):
                 return False
         return True
 

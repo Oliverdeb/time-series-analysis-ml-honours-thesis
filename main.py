@@ -23,26 +23,36 @@ def main():
     # print (series[:100])
     t = time.time()
     series_cutoff = 1000
+    import numpy as np
+    before = series[0]
 
+    _mean = np.mean(series)
+    _sd = np.std(series)
     _min = 20
     _max = 30
     # print ("before",series)
     # series = shapelet_utils.normalize(series[:series_cutoff])
-    # import numpy as np
     # series = [np.log(x) for x in series[:series_cutoff]]
-    series = series[:series_cutoff]
     # print ("after", series)
+    series = series[:series_cutoff]
+
     sets = [series]
     k_shapelets = []
     k = 10
     n_candidates = 15
     mse_threshold = 20
+    print ("mse %.4f, mean %.4f, sd %.4f" % (mse_threshold, _mean, _sd))
+    print ("before is %.2f, after is %.2f" % (before, series[0]))
+    # mse_threshold = mse_threshold / (before / series[0])
+    # mse_threshold = 0.5
+    print ("new mse %.4f" % mse_threshold)
+    
     quality_threshold = True
     for dataset in sets:
         shapelets = []
         # for l in range(_min, _max + 1):            
         # candidates_i_l = shapelet_utils.generate_candidates(dataset, l)
-        candidates_i_l = shapelet_utils.generate_all_size_candidates(dataset, _min, _max)
+        candidates_i_l = shapelet_utils.generate_all_size_candidates(dataset, _min, _max + 1)
         prog = len(candidates_i_l)
 
         print ("\r\tChecking candidates of length %d, %d candidates:" % (_min, prog), end="")
@@ -85,54 +95,29 @@ def main():
         shapelets.sort(key = lambda x: x.quality, reverse=quality_threshold)
         k_shapelets = shapelet_utils.merge(k_shapelets, shapelets)
 
-
     print ("time taken to get all %.2f" % (time.time() - t))    
-    def boundary_check(right_shapelet, left_shapelet, thresh):
-        if abs(right_shapelet.start_index - left_shapelet.start_index) <= thresh:
-            # update set with shapelets from the overlapping one
-            left_shapelet.of_same_class.update(right_shapelet.of_same_class, [right_shapelet])
-            return True
-        return False
-
-
-    # print ("Combining shapelets of the same class")
-    final = [k_shapelets[0]]
-    # for i, shapelet in enumerate(k_shapelets[1:]):
-    #     broke = False
-    #     for _shapelet in k_shapelets[:i]:
-    #         # check len of shapelets ?
-    #         if shapelet in _shapelet.of_same_class:
-    #             broke = True
-    #             break
-    #     if not broke: final.append(shapelet)
-    new_final = [final[0]]
-
-
-    # for shapelet in final[1:]:
-    #     flag = False
-    #     for _shapelet in new_final:
-    #         if len(_shapelet.shapelet) != len(shapelet.shapelet):
-    #             if boundary_check(shapelet, _shapelet, 5):
-    #                 flag = True
-    #     if not flag: new_final.append(shapelet)
-
+   
     final = shapelet_utils.remove_duplicates(k_shapelets)
     
-    print ("%.2fs elapsed\n%d initial shapelets found\n%d after class check\n%d after combination" % (time.time() -t, len(k_shapelets), len(final), len(new_final)))
+    print ("%.2fs elapsed\n%d initial shapelets found\n%d after class check" % (time.time() -t, len(k_shapelets), len(final)))
 
-    with open('out.csv', 'w') as f:
+    
+    file_name = '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '.csv'
+    with open(file_name, 'w') as f:
+        f.write("target,sequence\n")
         for i,shapelet in enumerate(final):
-            f.write(str(i) + "," + shapelet.tocsv() + "\n")
+            f.write(str(i) + "," + shapelet.to_csv_offset_0() + "\n")
             for similar in shapelet.of_same_class:
-                f.write(str(i) + "," + similar.tocsv() + "\n")
+                f.write(str(i) + "," + similar.to_csv_offset_0() + "\n")
 
+    shapelet_utils.graph_classes(final[:k], series[:series_cutoff])
 
     # shapelet_utils.graph(series[:series_cutoff], final[:k])
     
     # final.sort(key = lambda x: x.quality, reverse=quality_threshold)
 
     
-    shapelet_utils.graph_classes(final[:k], series[:series_cutoff])
+    
 
 
 

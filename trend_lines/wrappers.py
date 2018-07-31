@@ -1,6 +1,21 @@
 from numpy import arange, array, ones
 from numpy.linalg import lstsq
 import time
+from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
+from matplotlib.lines import Line2D
+def draw_plot(data,plot_title):
+    plot(range(len(data)),data,alpha=0.8,color='red')
+    title(plot_title)
+    xlabel("Samples")
+    ylabel("Signal")
+    xlim((0,len(data)-1))
+
+def draw_segments(segments):
+    ax = gca()
+    for segment in segments:
+        line = Line2D((segment[0],segment[2]),(segment[1],segment[3]))
+        ax.add_line(line)
+
 def leastsquareslinefit(sequence,seq_range):
     """Return the parameters and error for a least squares line fit of one segment of a sequence"""
     x = arange(seq_range[0],seq_range[1]+1)

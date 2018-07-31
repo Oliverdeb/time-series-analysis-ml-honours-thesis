@@ -1,8 +1,12 @@
 from shapelets.shapelet import Shapelet
 from shapelets.shapelet_utils import shapelet_utils
 import time
-from utils.Utils import Utils
+from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
+from matplotlib.lines import Line2D
 
+from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
+from trend_lines.fit import interpolate, sumsquared_error
+from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
 def main():
     # shapelet_classifier = Shapelet()
 
@@ -15,6 +19,8 @@ def main():
     # print ('a' , [arr[1] for arr in a])
     # print ('b' , [arr[1] for arr in b])
     # k = Shapelet.merge(4, a, b)
+
+    
     # print ('a' , [arr[1] for arr in a])
     # print ('b' , [arr[1] for arr in b])
 
@@ -95,6 +101,8 @@ def main():
         shapelets.sort(key = lambda x: x.quality, reverse=quality_threshold)
         k_shapelets = shapelet_utils.merge(k_shapelets, shapelets)
 
+        
+
     print ("time taken to get all %.2f" % (time.time() - t))    
    
     final = shapelet_utils.remove_duplicates(k_shapelets)
@@ -122,27 +130,42 @@ def main():
 
 
 if __name__ == '__main__':  
-    # main()
-    # exit(1)
-    print('\n===== POINTS =====')
-    points = Utils.read_file('data/snp2.csv')
-    print(len(points))
+    with open("data/snp2.csv") as f:
+    # with open("example_data/16265-normalecg.txt") as f:
+        file_lines = f.readlines()
 
-    points = Utils.moving_average(points)
-    print(len(points))
-    Utils.print_array(points)
+    data = [float(x.split("\t")[0].strip()) for x in file_lines]
 
-    print('\n===== LINES =====')
-    # lines_sliding_window = Utils.sliding_window_segmentation(points, 120)
-    # lines_top_down = Utils.top_down_segmentation(points, 500)
-    bottom_up = Utils.bottom_up_segmentation(points, 500)
-    # Utils.print_array(lines)
-    print('\n')
+    max_error = 500
 
-    p = []
-    for x in points:
-        p.append(x.price)
+    #sliding window with simple interpolation
+    name = "Sliding window with simple interpolation"
+    figure()
+    start = time.time()
+    segments = slidingwindowsegment(data, interpolate, sumsquared_error, max_error)
+    stats(name, max_error, start, segments, data)
+    draw_plot(data, name)
+    draw_segments(segments)
 
-    # Utils.graph(p, lines_top_down)
-    # Utils.graph(p, lines_sliding_window)
-    Utils.graph(p, bottom_up)
+
+    #bottom-up with  simple interpolation
+    name = "Bottom-up with simple interpolation"
+    figure()
+    start = time.time()
+    segments = bottomupsegment(data, interpolate, sumsquared_error, max_error)
+    stats(name, max_error, start, segments, data)
+    draw_plot(data,name)
+    draw_segments(segments)
+
+    #top-down with  simple interpolation
+    name = "Top-down with simple interpolation"
+    figure()
+    start = time.time()
+    segments = topdownsegment(data, interpolate, sumsquared_error, max_error)
+    stats(name, max_error, start, segments, data)
+    draw_plot(data,name)
+    draw_segments(segments)
+
+    # print(convert_to_slope_duration(segments))
+
+    show()

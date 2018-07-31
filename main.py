@@ -130,42 +130,43 @@ def main():
 
 
 if __name__ == '__main__':  
-    with open("data/snp2.csv") as f:
-    # with open("example_data/16265-normalecg.txt") as f:
-        file_lines = f.readlines()
+    mod = simple_lstm()
+    # with open("data/snp2.csv") as f:
+    # # with open("example_data/16265-normalecg.txt") as f:
+    #     file_lines = f.readlines()
 
-    data = [float(x.split("\t")[0].strip()) for x in file_lines]
+    # data = [float(x.split("\t")[0].strip()) for x in file_lines]
 
-    max_error = 500
+    # max_error = 500
 
-    #sliding window with simple interpolation
-    name = "Sliding window with simple interpolation"
-    figure()
-    start = time.time()
-    segments = slidingwindowsegment(data, interpolate, sumsquared_error, max_error)
-    stats(name, max_error, start, segments, data)
-    draw_plot(data, name)
-    draw_segments(segments)
+    # #sliding window with simple interpolation
+    # name = "Sliding window with simple interpolation"
+    # figure()
+    # start = time.time()
+    # segments = slidingwindowsegment(data, interpolate, sumsquared_error, max_error)
+    # stats(name, max_error, start, segments, data)
+    # draw_plot(data, name)
+    # draw_segments(segments)
 
 
-    #bottom-up with  simple interpolation
-    name = "Bottom-up with simple interpolation"
-    figure()
-    start = time.time()
-    segments = bottomupsegment(data, interpolate, sumsquared_error, max_error)
-    stats(name, max_error, start, segments, data)
-    draw_plot(data,name)
-    draw_segments(segments)
+    # #bottom-up with  simple interpolation
+    # name = "Bottom-up with simple interpolation"
+    # figure()
+    # start = time.time()
+    # segments = bottomupsegment(data, interpolate, sumsquared_error, max_error)
+    # stats(name, max_error, start, segments, data)
+    # draw_plot(data,name)
+    # draw_segments(segments)
 
-    #top-down with  simple interpolation
-    name = "Top-down with simple interpolation"
-    figure()
-    start = time.time()
-    segments = topdownsegment(data, interpolate, sumsquared_error, max_error)
-    stats(name, max_error, start, segments, data)
-    draw_plot(data,name)
-    draw_segments(segments)
+    # #top-down with  simple interpolation
+    # name = "Top-down with simple interpolation"
+    # figure()
+    # start = time.time()
+    # segments = topdownsegment(data, interpolate, sumsquared_error, max_error)
+    # stats(name, max_error, start, segments, data)
+    # draw_plot(data,name)
+    # draw_segments(segments)
 
-    # print(convert_to_slope_duration(segments))
+    # # print(convert_to_slope_duration(segments))
 
-    show()
+    # show()

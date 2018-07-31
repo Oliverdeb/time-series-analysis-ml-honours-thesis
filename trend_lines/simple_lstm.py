@@ -7,24 +7,23 @@ from keras.layers import Dense
 from keras.layers import LSTM
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
-# convert an array of values into a dataset matrix
 
 class simple_lstm:
 
 	def __init__(self):
 		pass
+	
+	def dostuff(self):
+		# convert an array of values into a dataset matrix
 
+		def create_dataset(dataset, look_back=1):
+			dataX, dataY = [], []
+			for i in range(len(dataset)-look_back-1):
+				a = dataset[i:(i+look_back), 0]
+				dataX.append(a)
+				dataY.append(dataset[i + look_back, 0])
+			return numpy.array(dataX), numpy.array(dataY)
 
-
-	def create_dataset(dataset, look_back=1):
-		dataX, dataY = [], []
-		for i in range(len(dataset)-look_back-1):
-			a = dataset[i:(i+look_back), 0]
-			dataX.append(a)
-			dataY.append(dataset[i + look_back, 0])
-		return numpy.array(dataX), numpy.array(dataY)
-
-	def dostuff():
 		# fix random seed for reproducibility
 		numpy.random.seed(7)
 		# load the dataset

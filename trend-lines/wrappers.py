@@ -14,11 +14,20 @@ def leastsquareslinefit(sequence,seq_range):
         error = 0.0
     return (p,error)
 
-def stats(name, mse, start_time, segments):
+def stats(name, mse, start_time, segments, points):
     print("------------------")
     print(name)
     print("------------------")
     print("MSE     : ", mse)
     print("Segments: ", len(segments))
     print("Run time: ", time.time()-start_time)
+    print("MSE     : ", mse_calculator(segments, points))
     print("==================")
+
+def mse_calculator(segments, points):
+    mse = 0
+    count = 0
+    for segment in segments:
+        mse += leastsquareslinefit(segment, (int(segment[0]), int(segment[2])))
+    return mse
+

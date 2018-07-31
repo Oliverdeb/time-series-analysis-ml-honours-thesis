@@ -47,11 +47,13 @@ max_error = 500
 
 
 #sliding window with simple interpolation
+print(data)
 name = "Sliding window with simple interpolation"
 figure()
 start = time.time()
 segments = segment.slidingwindowsegment(data, fit.interpolate, fit.sumsquared_error, max_error)
-stats(name, max_error, start, segments)
+print(segments)
+stats(name, max_error, start, segments, data)
 draw_plot(data, name)
 draw_segments(segments)
 

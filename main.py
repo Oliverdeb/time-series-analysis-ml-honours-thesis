@@ -3,7 +3,7 @@ from shapelets.shapelet_utils import shapelet_utils
 import time
 from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
 from matplotlib.lines import Line2D
-
+from trend_lines.simple_lstm import simple_lstm
 from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
 from trend_lines.fit import interpolate, sumsquared_error
 from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
@@ -131,6 +131,7 @@ def main():
 
 if __name__ == '__main__':  
     mod = simple_lstm()
+    mod.train()
     # with open("data/snp2.csv") as f:
     # # with open("example_data/16265-normalecg.txt") as f:
     #     file_lines = f.readlines()

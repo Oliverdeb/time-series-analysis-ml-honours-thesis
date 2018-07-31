@@ -10,10 +10,13 @@ from sklearn.metrics import mean_squared_error
 
 class simple_lstm:
 	def __init__(self, look_back=1):
-		self.model = self.compile_model()
 		self.look_back = look_back
+		print ('test')
+		self.compile_model()
 
 	def compile_model(self):
+		print ('test')
+
 		self.model = Sequential()
 		self.model.add(LSTM(4, input_shape=(1, self.look_back)))
 		self.model.add(Dense(1))
@@ -33,7 +36,7 @@ class simple_lstm:
 		# fix random seed for reproducibility
 		numpy.random.seed(7)
 		# load the dataset
-		dataframe = read_csv('../snp.csv', usecols=[0], engine='python', skipfooter=3)
+		dataframe = read_csv('data/snp2.csv', usecols=[0], engine='python', skipfooter=3)
 		dataset = dataframe.values
 		dataset = dataset.astype('float32')
 		# normalize the dataset

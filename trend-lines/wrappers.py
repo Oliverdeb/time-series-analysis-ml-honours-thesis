@@ -26,8 +26,7 @@ def stats(name, mse, start_time, segments, points):
 
 def mse_calculator(segments, points):
     mse = 0
-    count = 0
     for segment in segments:
-        mse += leastsquareslinefit(segment, (int(segment[0]), int(segment[2])))
-    return mse
+        mse += leastsquareslinefit(points, (int(segment[0]), int(segment[2])))[1]
+    return mse/segments
 

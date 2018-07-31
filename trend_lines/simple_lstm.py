@@ -38,8 +38,8 @@ class simple_lstm:
 		train, test = dataset[0:train_size,:], dataset[train_size:len(dataset),:]
 		# reshape into X=t and Y=t+1
 		look_back = 1
-		trainX, trainY = create_dataset(self, train, look_back)
-		testX, testY = create_dataset(self, test, look_back)
+		trainX, trainY = create_dataset(train, look_back)
+		testX, testY = create_dataset(test, look_back)
 		# reshape input to be [samples, time steps, features]
 		trainX = numpy.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 		testX = numpy.reshape(testX, (testX.shape[0], 1, testX.shape[1]))

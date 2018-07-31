@@ -3,7 +3,7 @@ from matplotlib.lines import Line2D
 import segment
 import fit
 import time
-from wrappers import stats
+from wrappers import stats, convert_to_slope_duration
 
 def draw_plot(data,plot_title):
     plot(range(len(data)),data,alpha=0.8,color='red')
@@ -73,5 +73,7 @@ segments = segment.topdownsegment(data, fit.interpolate, fit.sumsquared_error, m
 stats(name, max_error, start, segments, data)
 draw_plot(data,name)
 draw_segments(segments)
+
+print(convert_to_slope_duration(segments))
 
 show()

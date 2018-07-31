@@ -21,7 +21,7 @@ def stats(name, mse, start_time, segments, points):
     print("MSE\t\t\t: %.2f" % mse)
     print("Segments\t\t: %d" % len(segments))
     print("Run time\t\t: %.2f" % (time.time()-start_time))
-    print("MSE\t\t\t: %.2f" % mse_calculator(segments, points))
+    print("MSE (actual)\t\t: %.2f" % mse_calculator(segments, points))
     print('-'*len(name),sep='')
 
 def mse_calculator(segments, points):
@@ -30,3 +30,10 @@ def mse_calculator(segments, points):
         mse = mse +  leastsquareslinefit(points, (int(segment[0]), int(segment[2])))[1]
     return mse/len(segments)
 
+def convert_to_slope_duration(segments):
+    s_d = []
+    for s in segments:
+        duration = s[2]-s[0]
+        slope = (s[3]-s[1])/duration
+        s_d.append([slope, duration])
+    return s_d

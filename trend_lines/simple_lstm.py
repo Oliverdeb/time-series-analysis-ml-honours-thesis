@@ -9,10 +9,17 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
 class simple_lstm:
-	def __init__(self):
-		pass
+	def __init__(self, look_back=1):
+		self.model = self.compile_model()
+		self.look_back = look_back
+
+	def compile_model(self):
+		self.model = Sequential()
+		self.model.add(LSTM(4, input_shape=(1, self.look_back)))
+		self.model.add(Dense(1))
+		self.model.compile(loss='mean_squared_error', optimizer='adam')
 	
-	def dostuff(self):
+	def train(self):
 		# convert an array of values into a dataset matrix
 
 		def create_dataset( dataset, look_back=1):
@@ -37,21 +44,17 @@ class simple_lstm:
 		test_size = len(dataset) - train_size
 		train, test = dataset[0:train_size,:], dataset[train_size:len(dataset),:]
 		# reshape into X=t and Y=t+1
-		look_back = 1
-		trainX, trainY = create_dataset(train, look_back)
-		testX, testY = create_dataset(test, look_back)
+		trainX, trainY = create_dataset(train, self.look_back)
+		testX, testY = create_dataset(test, self.look_back)
 		# reshape input to be [samples, time steps, features]
 		trainX = numpy.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 		testX = numpy.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 		# create and fit the LSTM network
-		model = Sequential()
-		model.add(LSTM(4, input_shape=(1, look_back)))
-		model.add(Dense(1))
-		model.compile(loss='mean_squared_error', optimizer='adam')
-		model.fit(trainX, trainY, epochs=100, batch_size=1, verbose=2)
+		self.model.fit(trainX, trainY, epochs=100, batch_size=1, verbose=2)
+		
 		# make predictions
-		trainPredict = model.predict(trainX)
-		testPredict = model.predict(testX)
+		trainPredict = self.model.predict(trainX)
+		testPredict = self.model.predict(testX)
 		# invert predictions
 		trainPredict = scaler.inverse_transform(trainPredict)
 		trainY = scaler.inverse_transform([trainY])
@@ -65,11 +68,11 @@ class simple_lstm:
 		# shift train predictions for plotting
 		trainPredictPlot = numpy.empty_like(dataset)
 		trainPredictPlot[:, :] = numpy.nan
-		trainPredictPlot[look_back:len(trainPredict)+look_back, :] = trainPredict
+		trainPredictPlot[self.look_back:len(trainPredict)+self.look_back, :] = trainPredict
 		# shift test predictions for plotting
 		testPredictPlot = numpy.empty_like(dataset)
 		testPredictPlot[:, :] = numpy.nan
-		testPredictPlot[len(trainPredict)+(look_back*2)+1:len(dataset)-1, :] = testPredict
+		testPredictPlot[len(trainPredict)+(self.look_back*2)+1:len(dataset)-1, :] = testPredict
 		# plot baseline and predictions
 		plt.plot(scaler.inverse_transform(dataset))
 		plt.plot(trainPredictPlot)

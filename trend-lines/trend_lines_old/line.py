@@ -10,7 +10,7 @@ class Line:
 
     def lineArray(self):
         line = []
-        for x in range(self.duration):
+        for x in range(self.duration+1):
             line.append(Point(self.start+x, float(self.c) + float(self.slope*x), self.start+x))
         return line
 

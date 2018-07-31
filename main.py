@@ -122,8 +122,8 @@ def main():
 
 
 if __name__ == '__main__':  
-    main()
-    exit(1)
+    # main()
+    # exit(1)
     print('\n===== POINTS =====')
     points = Utils.read_file('data/snp2.csv')
     print(len(points))
@@ -133,12 +133,16 @@ if __name__ == '__main__':
     Utils.print_array(points)
 
     print('\n===== LINES =====')
-    lines = Utils.sliding_window_segmentation(points, 120)
-    Utils.print_array(lines)
+    # lines_sliding_window = Utils.sliding_window_segmentation(points, 120)
+    # lines_top_down = Utils.top_down_segmentation(points, 500)
+    bottom_up = Utils.bottom_up_segmentation(points, 500)
+    # Utils.print_array(lines)
     print('\n')
 
     p = []
     for x in points:
         p.append(x.price)
 
-    Utils.graph(p, lines)
+    # Utils.graph(p, lines_top_down)
+    # Utils.graph(p, lines_sliding_window)
+    Utils.graph(p, bottom_up)

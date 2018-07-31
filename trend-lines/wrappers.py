@@ -15,14 +15,14 @@ def leastsquareslinefit(sequence,seq_range):
     return (p,error)
 
 def stats(name, mse, start_time, segments, points):
-    print("------------------")
+    print("\n\n",'-'*len(name),sep='')
     print(name)
-    print("------------------")
-    print("MSE     : ", mse)
-    print("Segments: ", len(segments))
-    print("Run time: ", time.time()-start_time)
-    print("MSE     : ", mse_calculator(segments, points))
-    print("==================")
+    print('-'*len(name),sep='')
+    print("MSE\t\t\t: %.2f" % mse)
+    print("Segments\t\t: %d" % len(segments))
+    print("Run time\t\t: %.2f" % (time.time()-start_time))
+    print("MSE\t\t\t: %.2f" % mse_calculator(segments, points))
+    print('-'*len(name),sep='')
 
 def mse_calculator(segments, points):
     mse = 0

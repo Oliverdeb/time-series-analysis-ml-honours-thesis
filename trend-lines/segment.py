@@ -53,18 +53,20 @@ def bottomupsegment(sequence, create_segment, compute_error, max_error):
 
     while min(mergecosts) < max_error:
         idx = mergecosts.index(min(mergecosts))
-        segments[idx] = mergesegments[idx]
+
+        new_seg = create_segment(sequence, (segments[idx][0], segments[idx+1][2]))
+        segments[idx] = new_seg
         del segments[idx+1]
 
+
         if idx > 0:
-            mergesegments[idx-1] = create_segment(sequence,(segments[idx-1][0],segments[idx][2]))
-            mergecosts[idx-1] = compute_error(sequence,mergesegments[idx-1])
+            merge_seg = create_segment(sequence,(segments[idx-1][0],segments[idx][2]))
+            mergecosts[idx-1] = compute_error(sequence,merge_seg)
 
         if idx+1 < len(mergecosts):
-            mergesegments[idx+1] = create_segment(sequence,(segments[idx][0],segments[idx+1][2]))
-            mergecosts[idx+1] = compute_error(sequence,mergesegments[idx])
+            merge_seg = create_segment(sequence,(segments[idx][0],segments[idx+1][2]))
+            mergecosts[idx] = compute_error(sequence,merge_seg)
 
-        del mergesegments[idx]
         del mergecosts[idx]
 
     return segments

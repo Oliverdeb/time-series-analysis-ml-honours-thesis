@@ -46,9 +46,6 @@ def mse_calculator(segments, points):
     return mse/len(segments)
 
 def convert_to_slope_duration(segments):
-    s_d = []
-    for s in segments:
-        duration = s[2]-s[0]
-        slope = (s[3]-s[1])/duration
-        s_d.append([slope, duration])
-    return s_d
+    for (x0,y0,x1,y1) in segments:
+        duration = x1-x0
+        yield ( (y1-y0)/duration , duration )

@@ -81,7 +81,7 @@ if __name__ == "__main__":
     
     test = "1978.09 1953.03 1961.05 1952.29 1942.04 1969.41 1921.22 1951.13 1948.86 1913.85 1972.18 1988.87 1987.66 1940.51 1867.61 1893.21 1970.89 2035.73 2079.61 2096.92"
     test2 = "2270.75 2257.83 2238.83 2249.26 2249.92 2268.88 2263.79 2260.96 2265.18 2270.76 2262.53 2258.07 2262.03 2253.28 2271.72 2256.96 2259.53 2246.19 2241.35 2212.23"
-    # test2 = test
+    test2 = test
     test2 = np.array([float(x) for x in test2.split(' ')])
     offset = test2[0]
     test2 = test2 - offset
@@ -92,10 +92,12 @@ if __name__ == "__main__":
 
     test2= test2.reshape( 20,  1)
 
+    print( test2)
+
 
     # fix offset to 0
 
-    predictions = model.predict(np.array([test2]))
+    predictions = model.predict(np.array([test2]), batch_size=32)
     for prediction in predictions:
         print (prediction.max(), prediction.argmax())
     

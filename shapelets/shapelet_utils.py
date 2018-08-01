@@ -4,9 +4,7 @@ from scipy.spatial.distance import sqeuclidean
 import numpy as np
 
 class shapelet_utils:
-    def __init__(self):
-        pass
-
+    
     @staticmethod
     def percent_diff( series):
         diff = []
@@ -15,29 +13,56 @@ class shapelet_utils:
         return diff
 
     @staticmethod
-    def graph_classes(shapelets, series):
+    def graph_classes_from_file(in_file, n_classes):
+        shapelets = []
+        lines = in_file.readlines()
+        fst = Shapelet ([float(x) for x in lines[1].split(',')[1].split(' ')], 0)
+        fst.of_same_class = set()
+        prev_class = '0'
+        shapelets.append(fst)
+        print ("test")
+        for line in lines[2:]:
+            line = line.split(',')
+            shapelet = line[1].split(' ')
+            curr = Shapelet([float(x) for x in shapelet], 0)
+            curr.of_same_class = set()
+            
+
+            if line[0] == prev_class:
+                shapelets[-1].of_same_class.update([curr])
+            else:
+                prev_class = line[0]
+                shapelets[-1].quality = len(shapelets[-1].of_same_class)
+                shapelets.append(curr)
+
+        shapelets.sort(key = lambda x: x.quality, reverse=True)
+        print (shapelets[0].of_same_class)
+        print (n_classes)
+        shapelet_utils.graph_classes(shapelets[:10], -600, 300, n_classes)
+
+    @staticmethod
+    def graph_classes(shapelets, _min, _max, n_classes):
         import matplotlib.pyplot as plt
         import matplotlib.cm as cm
 
-        _m = np.max(series)
-        _min = np.min(series)
-        print (_min, _m , " is here")
         fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
 
         for i,shapelet in enumerate(shapelets):
             axes[i].set_title('shapelet' + str(i) + "," + str(len(shapelet.of_same_class) + 1))
 
-            even_y_values = np.linspace(_min, _m, 20 if len(shapelet.of_same_class) > 20 else len(shapelet.of_same_class))
+            even_y_values = np.linspace(_min, _max, n_classes if len(shapelet.of_same_class) > n_classes else len(shapelet.of_same_class))
             # diff = - ( shapelet.shapelet[0] - even_y_values[0])
             # diff = 0
             axes[i].scatter(range(len(shapelet.shapelet)), shapelet.shapelet)
 
 
-            for e, (j,similar_shapelet) in zip(even_y_values, enumerate(list(shapelet.of_same_class)[:20])):
-                # diff = - ( shapelet.shapelet[0] - even_y_values[0])
+            for e, (j,similar_shapelet) in zip(even_y_values, enumerate(list(shapelet.of_same_class)[:n_classes])):
+                # print (":test")
+                diff =  ( similar_shapelet.shapelet[0] - e)
 
-                axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - j*35 for y in similar_shapelet.shapelet])
-            axes[i].set_ylim([-900 , 70])
+                # axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - j*35 for y in similar_shapelet.shapelet])
+                axes[i].scatter(range(len(similar_shapelet.shapelet)),  similar_shapelet.shapelet + diff )#if j % 2 ==0 else similar_shapelet.shapelet - diff)
+            axes[i].set_ylim([_min*0.85 , _max*1.05])
             # axes[i].set_ylim([-3, 3])
         
         fig.tight_layout()
@@ -70,16 +95,11 @@ class shapelet_utils:
 
     @staticmethod
     def remove_items_from_other_shapelet_classes(set_of_shapelets_seen, shapelets):
-        # loop through all the remaining shapelets and remove elents from the shapelets_of_same_class
-        # for seen in set_of_shapelets_seen:
-        #     for shapelet in shapelets:
-        #         if seen in shapelet.of_same_class:
-        #             shapelet.of_same_class.remove(seen)
-        #             shapelet.quality = len(shapelet.of_same_class)
-
         for shapelet in shapelets:
             shapelet.of_same_class = shapelet.of_same_class - set_of_shapelets_seen
             shapelet.quality = len(shapelet.of_same_class)
+
+
     @staticmethod
     def graph(series, shapelets):
         import matplotlib.pyplot as plt
@@ -202,10 +222,3 @@ class shapelet_utils:
     def normalize(series):
         from scipy.stats import zscore
         return zscore(series)
-
-    @staticmethod
-    def distance(shapelet, series): 
-        return euclidean(shapelet, series)
-
-    def generate_shapelets(self):
-        pass

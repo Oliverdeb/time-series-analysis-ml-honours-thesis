@@ -1,32 +1,16 @@
 from shapelets.shapelet import Shapelet
 from shapelets.shapelet_utils import shapelet_utils
-import time
 from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
 from matplotlib.lines import Line2D
 from trend_lines.simple_lstm import simple_lstm
 from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
 from trend_lines.fit import interpolate, sumsquared_error
 from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
+import time, argparse
+
 def main():
-    # shapelet_classifier = Shapelet()
 
     series = [float(x) for x in open('data/snp2.csv').readlines()]
-    # print (series[:100])
-    # exit(1)
-    # a = [ (1,2), (2,5), (1,1), (1,9)]
-    # b = [ (1,3)] #, (1,1), (1,15), (1,8)]
-    # b.sort(key = lambda x: x[1])
-    # print ('a' , [arr[1] for arr in a])
-    # print ('b' , [arr[1] for arr in b])
-    # k = Shapelet.merge(4, a, b)
-
-    
-    # print ('a' , [arr[1] for arr in a])
-    # print ('b' , [arr[1] for arr in b])
-
-    # print (k)
-    # series = shapelet_utils.percent_diff(series)
-    # print (series[:100])
     t = time.time()
     series_cutoff = 1000
     import numpy as np
@@ -34,12 +18,10 @@ def main():
 
     _mean = np.mean(series)
     _sd = np.std(series)
-    _min = 20
+    _min = 15
     _max = 30
-    # print ("before",series)
     # series = shapelet_utils.normalize(series[:series_cutoff])
     # series = [np.log(x) for x in series[:series_cutoff]]
-    # print ("after", series)
     series = series[:series_cutoff]
 
     sets = [series]
@@ -109,8 +91,10 @@ def main():
     
     print ("%.2fs elapsed\n%d initial shapelets found\n%d after class check" % (time.time() -t, len(k_shapelets), len(final)))
 
+    shapelet_utils.graph_classes(final[:k], np.min(series), np.max(series), 20)
+
     
-    file_name = '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '.csv'
+    file_name = 'shapelets/output/' + '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '.csv'
     with open(file_name, 'w') as f:
         f.write("target,sequence\n")
         for i,shapelet in enumerate(final):
@@ -118,7 +102,6 @@ def main():
             for similar in shapelet.of_same_class:
                 f.write(str(i) + "," + similar.to_csv_offset_0() + "\n")
 
-    shapelet_utils.graph_classes(final[:k], series[:series_cutoff])
 
     # shapelet_utils.graph(series[:series_cutoff], final[:k])
     
@@ -130,6 +113,27 @@ def main():
 
 
 if __name__ == '__main__':  
+
+    parser  = argparse.ArgumentParser()
+    parser.add_argument("-g",help="amount of shapelets from each class to display, -g 10", default=10)
+    parser.add_argument("-s", help="Display series up to cutoff, -s 1000", default=1000)
+    parser.add_argument("-f", help="filename of shapelets to display")
+
+    args = parser.parse_args()
+
+    if args.g:
+        if not args.f:
+            print ("Please provide a filename to display")
+
+        shapelet_utils.graph_classes_from_file(open(args.f), int(args.g))
+
+        exit()
+    # if args.s:
+
+
+    main()
+    exit()
+
     mod = simple_lstm()
     mod.train()
     exit(1)

@@ -36,8 +36,6 @@ class shapelet_utils:
                 shapelets.append(curr)
 
         shapelets.sort(key = lambda x: x.quality, reverse=True)
-        print (shapelets[0].of_same_class)
-        print (n_classes)
         shapelet_utils.graph_classes(shapelets[:10], -600, 300, n_classes)
 
     @staticmethod

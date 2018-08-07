@@ -1,3 +1,5 @@
+from scipy.stats import zscore
+
 class Shapelet:
 
     def __init__(self, shapelet, index, quality=0):
@@ -10,6 +12,11 @@ class Shapelet:
 
     def __gt__(self, other):
         return self.quality > other.quality
+
+    def to_csv_standardise(self):
+        self.shapelet = zscore(self.shapelet)
+        return self.to_csv()
+
     
     def to_csv_offset_0(self):
         offset = self.shapelet[0]

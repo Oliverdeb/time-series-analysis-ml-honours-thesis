@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     test2= test2.reshape( 20,  1)
 
-    print( test2)
+    # print( test2)
 
 
     # fix offset to 0

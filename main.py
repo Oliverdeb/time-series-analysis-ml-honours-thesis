@@ -1,11 +1,8 @@
 from shapelets.shapelet import Shapelet
 from shapelets.shapelet_utils import shapelet_utils
+# from sklearn.preprocessing import MinMaxScaler
 from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
 from matplotlib.lines import Line2D
-from trend_lines.simple_lstm import simple_lstm
-from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
-from trend_lines.fit import interpolate, sumsquared_error
-from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
 import time, argparse
 
 def main():
@@ -18,10 +15,12 @@ def main():
 
     _mean = np.mean(series)
     _sd = np.std(series)
-    _min = 15
+    _min = 20
     _max = 30
     # series = shapelet_utils.normalize(series[:series_cutoff])
     # series = [np.log(x) for x in series[:series_cutoff]]
+    # scaler = MinMaxScaler(feature_range=(0, 1))
+    # series = scaler.fit_transform(series)
     series = series[:series_cutoff]
 
     sets = [series]
@@ -94,13 +93,13 @@ def main():
     shapelet_utils.graph_classes(final[:k], np.min(series), np.max(series), 20)
 
     
-    file_name = 'shapelets/output/' + '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '.csv'
+    file_name = 'shapelets/output/' + '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '-standardized.csv'
     with open(file_name, 'w') as f:
         f.write("target,sequence\n")
         for i,shapelet in enumerate(final):
-            f.write(str(i) + "," + shapelet.to_csv_offset_0() + "\n")
+            f.write(str(i) + "," + shapelet.to_csv_standardise() + "\n")
             for similar in shapelet.of_same_class:
-                f.write(str(i) + "," + similar.to_csv_offset_0() + "\n")
+                f.write(str(i) + "," + similar.to_csv_standardise() + "\n")
 
 
     # shapelet_utils.graph(series[:series_cutoff], final[:k])
@@ -115,8 +114,8 @@ def main():
 if __name__ == '__main__':  
 
     parser  = argparse.ArgumentParser()
-    parser.add_argument("-g",help="amount of shapelets from each class to display, -g 10", default=10)
-    parser.add_argument("-s", help="Display series up to cutoff, -s 1000", default=1000)
+    parser.add_argument("-g",help="amount of shapelets from each class to display, -g 10")
+    parser.add_argument("-s", help="Display series up to cutoff, -s 1000")
     parser.add_argument("-f", help="filename of shapelets to display")
 
     args = parser.parse_args()
@@ -134,6 +133,10 @@ if __name__ == '__main__':
     main()
     exit()
 
+    from trend_lines.simple_lstm import simple_lstm
+    from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
+    from trend_lines.fit import interpolate, sumsquared_error
+    from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
     mod = simple_lstm()
     mod.train()
     exit(1)

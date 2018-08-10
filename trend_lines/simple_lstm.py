@@ -15,7 +15,7 @@ class simple_lstm:
 
 	def compile_model(self):
 		self.model = Sequential()
-		self.model.add(LSTM(4, input_shape=(1, self.look_back)))
+		self.model.add(LSTM(128, input_shape=(1, self.look_back)))
 		self.model.add(Dense(1))
 		self.model.compile(loss='mean_squared_error', optimizer='adam')
 	

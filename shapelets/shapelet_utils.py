@@ -201,8 +201,6 @@ class shapelet_utils:
                 return False
         return True
 
-     
-
     @staticmethod
     def MSE(fst, snd):        
         diff = - (snd[0] - fst[0])

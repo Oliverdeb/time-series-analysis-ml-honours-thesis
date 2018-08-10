@@ -5,7 +5,8 @@ import pandas as pd
 import numpy as np
 import argparse
 
-input_file = '../1000-20-30-20-38.csv'
+file_name = '1000-20-40-20-52.csv'
+input_file = 'output/' + file_name
 
 def load_data(test_split = 0.2):
     print ('Loading data...')
@@ -32,11 +33,11 @@ def create_model(input_length):
     # model.add(Dropout(0.5))
 
     # new way
-    model.add(LSTM(128, recurrent_activation="hard_sigmoid", activation="sigmoid", return_sequences=True, input_shape=(20, 1)))
+    model.add(LSTM(128, recurrent_activation="hard_sigmoid", activation="sigmoid", input_shape=(20, 1) )) #, return_sequences=True))
     model.add(Dropout(0.5))
     # model.add(LSTM(128,  recurrent_activation="hard_sigmoid", activation="sigmoid"))
     # model.add(Dropout(0.5))
-    model.add(Dense(38, activation='sigmoid'))
+    model.add(Dense(52, activation='sigmoid'))
 
     print ('Compiling...')
     # model.compile(loss='binary_crossentropy',
@@ -61,12 +62,15 @@ if __name__ == "__main__":
         X_train = X_train.reshape(len(X_train), len(X_train[0]), 1)
         print (X_test.shape)
         X_test = X_test.reshape(len(X_test), len(X_test[0]), 1)
+        # model = load_model("52_classes_128_offset_model1000-20-40-20-52.csv.h5")
+
         model = create_model(len(X_train[0]))
         print ('Fitting model...')
 
-        hist = model.fit(X_train, y_train, batch_size=64, epochs=500, validation_split = 0.1, verbose = 1)
+        hist = model.fit(X_train, y_train, batch_size=64, epochs=300, validation_split = 0.1, verbose = 1)
+        print ("er")
         if args.save:
-            model.save("2_LSTM_128_offset_model.h5")
+            model.save("52_classes_128_offset_model" + file_name + '.h5')
         
         score, acc = model.evaluate(X_test, y_test, batch_size=1)
 

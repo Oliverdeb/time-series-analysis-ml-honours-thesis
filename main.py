@@ -16,7 +16,7 @@ def main():
     _mean = np.mean(series)
     _sd = np.std(series)
     _min = 20
-    _max = 30
+    _max = 40
     # series = shapelet_utils.normalize(series[:series_cutoff])
     # series = [np.log(x) for x in series[:series_cutoff]]
     # scaler = MinMaxScaler(feature_range=(0, 1))
@@ -44,7 +44,7 @@ def main():
 
         print ("\r\tChecking candidates of length %d, %d candidates:" % (_min, prog), end="")
         for i,w in enumerate(candidates_i_l):
-            if i % 11 ==0 :
+            if i % 23 ==0 :
                 print ("\r%.2f" % (i/prog), end="")
 
             w.of_same_class = shapelet_utils.find_new_mse(w, candidates_i_l[:i] + candidates_i_l[i+1:], mse_threshold)
@@ -93,13 +93,13 @@ def main():
     shapelet_utils.graph_classes(final[:k], np.min(series), np.max(series), 20)
 
     
-    file_name = 'shapelets/output/' + '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '-standardized.csv'
+    file_name = 'shapelets/output/' + '-'.join((str(series_cutoff), str(_min), str(_max), str(mse_threshold), str(len(final)))) + '.csv'
     with open(file_name, 'w') as f:
         f.write("target,sequence\n")
         for i,shapelet in enumerate(final):
-            f.write(str(i) + "," + shapelet.to_csv_standardise() + "\n")
+            f.write(str(i) + "," + shapelet.to_csv_offset_0() + "\n")
             for similar in shapelet.of_same_class:
-                f.write(str(i) + "," + similar.to_csv_standardise() + "\n")
+                f.write(str(i) + "," + similar.to_csv_offset_0() + "\n")
 
 
     # shapelet_utils.graph(series[:series_cutoff], final[:k])
@@ -178,6 +178,7 @@ if __name__ == '__main__':
     
     # only uses from topdown ?
     with open ('slope_dur.csv', 'w') as f:
+        f.write('slope,duration')
         for slope, duration in convert_to_slope_duration(segments):
             f.write(  ','.join( ( "%.2f" % slope, "%d" % duration )) + "\n")
 

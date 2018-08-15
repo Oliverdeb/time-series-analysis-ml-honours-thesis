@@ -210,11 +210,12 @@ class shapelet_utils:
 
     @staticmethod
     def find_mse(candidate, shapelets):
-        return [(
-            shapelet_utils.MSE(candidate.shapelet, shapelet.shapelet) , shapelet
-        ) for shapelet in shapelets if candidate.start_index != shapelet.start_index]
+        return [
+            (shapelet_utils.MSE(candidate.shapelet, shapelet.shapelet) , shapelet) 
+            for shapelet in shapelets if candidate.start_index != shapelet.start_index
+        ]
 
     @staticmethod
-    def normalize(series):
+    def standardize(series):
         from scipy.stats import zscore
         return zscore(series)

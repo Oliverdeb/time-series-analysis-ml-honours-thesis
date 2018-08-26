@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from pandas import read_csv
 import math
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 
 # convert an array of values into a dataset matrix
 def create_dataset(dataset, look_back=1):
@@ -19,7 +19,7 @@ def create_dataset(dataset, look_back=1):
 numpy.random.seed(7)
 # load the dataset
 #dataframe = read_csv('international-airline-passengers.csv', usecols=[1], engine='python', skipfooter=3)
-dataframe = read_csv('bitcoin.csv', usecols=[0], engine='python', skipfooter=3)
+dataframe = read_csv('../data/bitcoin.csv', usecols=[0], engine='python', skipfooter=3)
 dataset = dataframe.values
 dataset = dataset.astype('float32')
 # split into train and test sets
@@ -27,16 +27,17 @@ train_size = int(len(dataset) * 0.67)
 test_size = len(dataset) - train_size
 train, test = dataset[0:train_size,:], dataset[train_size:len(dataset),:]
 # reshape dataset
-look_back = 3
+look_back = 20
 trainX, trainY = create_dataset(train, look_back)
 testX, testY = create_dataset(test, look_back)
 # create and fit Multilayer Perceptron model
 model = Sequential()
 model.add(Dense(12, input_dim=look_back, activation='relu'))
+model.add(Dense(12, activation='relu'))
 model.add(Dense(8, activation='relu'))
 model.add(Dense(1))
 model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(trainX, trainY, epochs=400, batch_size=2, verbose=2)
+model.fit(trainX, trainY, epochs=400, batch_size=32, verbose=2)
 # Estimate model performance
 trainScore = model.evaluate(trainX, trainY, verbose=0)
 print('Train Score: %.2f MSE (%.2f RMSE)' % (trainScore, math.sqrt(trainScore)))

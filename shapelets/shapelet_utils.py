@@ -39,27 +39,29 @@ class shapelet_utils:
         shapelet_utils.graph_classes(shapelets[:10], -600, 300, n_classes)
 
     @staticmethod
-    def graph_classes(shapelets, _min, _max, n_classes):
+    def graph_classes(shapelets, per_class, _min, _max, shapelet_dict):
         import matplotlib.pyplot as plt
         import matplotlib.cm as cm
-
+        n_classes = per_class
         fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
-
+        _min = 400
+        # _max = 3000
         for i,shapelet in enumerate(shapelets):
             axes[i].set_title('shapelet' + str(i) + "," + str(len(shapelet.of_same_class) + 1))
-
+            shapelet.shapelet = shapelet.shapelet - shapelet.shapelet[0]
             even_y_values = np.linspace(_min, _max, n_classes if len(shapelet.of_same_class) > n_classes else len(shapelet.of_same_class))
             # diff = - ( shapelet.shapelet[0] - even_y_values[0])
             # diff = 0
             axes[i].scatter(range(len(shapelet.shapelet)), shapelet.shapelet)
 
 
-            for e, (j,similar_shapelet) in zip(even_y_values, enumerate(list(shapelet.of_same_class)[:n_classes])):
+            for e, (j,similar_shapelet) in zip(even_y_values, enumerate(shapelet.of_same_class_objs(shapelet_dict, n_classes))):
                 # print (":test")
-                diff =  ( similar_shapelet.shapelet[0] - e)
+                # diff =  ( similar_shapelet.shapelet[0] - e )
+                similar_shapelet.shapelet = similar_shapelet.shapelet - similar_shapelet.shapelet[0] + e
 
                 # axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - j*35 for y in similar_shapelet.shapelet])
-                axes[i].scatter(range(len(similar_shapelet.shapelet)),  similar_shapelet.shapelet + diff )#if j % 2 ==0 else similar_shapelet.shapelet - diff)
+                axes[i].scatter(range(len(similar_shapelet.shapelet)),  similar_shapelet.shapelet) #+ diff )#if j % 2 ==0 else similar_shapelet.shapelet - diff)
             axes[i].set_ylim([_min*0.85 , _max*1.05])
             # axes[i].set_ylim([-3, 3])
         
@@ -70,7 +72,7 @@ class shapelet_utils:
     @staticmethod
     def remove_duplicates(shapelets):
         shapelets.sort(key = lambda x: x.quality, reverse=True)
-        print ("l;en is", len(shapelets))
+        print ("len is", len(shapelets))
         final = []
         set_of_shapelets_seen = set()
         i = 0
@@ -82,7 +84,7 @@ class shapelet_utils:
                 print ("\rlen/n=%.2f, using i/n = %.2f" % (1- (len(shapelets) / n_candidates), i/n_candidates), end="")
             curr_shapelet = shapelets[0]
             final.append(curr_shapelet)
-            set_of_shapelets_seen.update ([curr_shapelet], curr_shapelet.of_same_class)
+            set_of_shapelets_seen.update ([curr_shapelet.id], curr_shapelet.of_same_class)
             del shapelets[0]
             shapelet_utils.remove_items_from_other_shapelet_classes(set_of_shapelets_seen, shapelets)
 
@@ -165,12 +167,17 @@ class shapelet_utils:
         return merged
 
     @staticmethod
-    def generate_all_size_candidates(dataset, _min, _max):
+    def generate_all_size_candidates(dataset,  _min, _max):
         candidates = []
+        shapelet_dict = {}
+        id = 0 
         for l in range(_min, _max):
             for i in range(len(dataset) - l + 1):
-                candidates.append(Shapelet(np.array(dataset[i:i+l]), i))
-        return candidates
+                shapelet = Shapelet(np.array(dataset[i:i+l]), i, id)
+                candidates.append(shapelet)
+                shapelet_dict[id] = shapelet
+                id += 1
+        return shapelet_dict, candidates
 
     @staticmethod
     def generate_candidates(dataset, window_size):
@@ -184,20 +191,22 @@ class shapelet_utils:
     @staticmethod
     def find_new_mse(candidate, shapelets, threshold):
         return {
-            shapelet
+            shapelet.id
                 for shapelet in shapelets 
                 # if  abs (shapelet.start_index - candidate.start_index) > 10
-                if abs (len(candidate.shapelet) - len(shapelet.shapelet)) <= 5
-                and shapelet_utils.mse_dist(candidate.shapelet, shapelet.shapelet, threshold) 
+                if candidate.id != shapelet.id
+                and abs (len(candidate.shapelet) - len(shapelet.shapelet)) <= 5
+                and shapelet_utils.mse_dist(candidate.std_shapelet, shapelet.std_shapelet, threshold) 
         }
 
     @staticmethod
-    def mse_dist(s1, s2, threshold):
-        diff = - (s1[0] - s2[0])
-        shapelet = s2 + diff if diff != 0 else s2
-        shorter = len(s1) if len(s1) < len(s2) else len(s2)
+    def mse_dist(fst, snd, threshold):
+        # diff = - (snd[0] - fst[0])
+        # shapelet = snd + diff if diff != 0 else snd
+        shapelet = snd
+        shorter = len(fst) if len(fst) < len(snd) else len(snd)
         for i in range(1, shorter):
-            if abs(s1[i] - shapelet[i]) > abs(threshold):
+            if abs(fst[i] - shapelet[i]) > abs(threshold):
                 return False
         return True
 

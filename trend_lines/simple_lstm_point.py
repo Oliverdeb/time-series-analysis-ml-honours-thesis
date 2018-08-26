@@ -33,7 +33,7 @@ class simple_lstm:
 		# fix random seed for reproducibility
 		numpy.random.seed(7)
 		# load the dataset
-		dataframe = read_csv('slope_dur.csv', usecols=[0], engine='python', skipfooter=3)
+		dataframe = read_csv('../data/snp2.csv', usecols=[0], engine='python', skipfooter=3)
 		dataset = dataframe.values
 		dataset = dataset.astype('float32')
 		# normalize the dataset
@@ -50,7 +50,7 @@ class simple_lstm:
 		trainX = numpy.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 		testX = numpy.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 		# create and fit the LSTM network
-		self.model.fit(trainX, trainY, epochs=100, batch_size=1, verbose=2)
+		self.model.fit(trainX, trainY, epochs=300, batch_size=64, verbose=2)
 		
 		# make predictions
 		trainPredict = self.model.predict(trainX)
@@ -78,3 +78,7 @@ class simple_lstm:
 		plt.plot(trainPredictPlot)
 		plt.plot(testPredictPlot)
 		plt.show()
+
+lstm = simple_lstm(10)
+lstm.compile_model()
+lstm.train()

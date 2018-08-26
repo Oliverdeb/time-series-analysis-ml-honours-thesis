@@ -6,3 +6,6 @@ venv
 .DS_Store
 .pytest_cache
 out.csv
+*.graph
+shapelets/output/*
+*.h5

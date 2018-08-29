@@ -44,14 +44,17 @@ def output_to_file(file_name, shapelets, shapelet_dict):
                 'shapelet_dict': output_map,
                 'shapelets': shapelets,
         }, out_map)
+    dump_csv(shapelets, shapelet_dict, 49, file_name)
+    
 
+def dump_csv(shapelets, shapelet_dict, max_per_class, file_name):
+    
     with open(file_name, 'w') as f:
         f.write("target,sequence\n")
         for i,shapelet in enumerate(shapelets):
             f.write(str(i) + "," + shapelet.to_csv() + "\n")
-            for similar in shapelet.of_same_class_objs(shapelet_dict):
+            for similar in shapelet.of_same_class_objs(shapelet_dict, max_per_class):
                 f.write(str(i) + "," + similar.to_csv() + "\n")
-
 def main():
     t = time.time()
 
@@ -67,11 +70,19 @@ def main():
     id = 0
     datasets = []
     archive_dir = 'data/jse'
-    for _file in os.listdir(archive_dir):
+    try:
+        files = os.listdir(archive_dir)
+    except Exception as e:
+        print (e)
+        print ("Error finding data, is './data/jse' present?")
+        exit(1)
+
+    if files is []:
+        print ("Error finding datasets, are there any files in './data/jse/*' ?")
+        exit(1)
+
+    for _file in files[:1]:
         dataset = read_csv(os.path.join(archive_dir, _file), usecols=[1])
-    # dataset = read_csv('data/snp2.csv', usecols=[0])
-
-
         datasets.append(([
             x[0] for x in dataset.values.astype('float32')],
             _file))
@@ -96,7 +107,6 @@ def main():
 
     # shuffle array so that work is evenly distributed betweens processes
     # np.random.shuffle(pool)
-    exit()
     N_PROCS = 8
 
     print ("{0} candidates, {1} processes spawning".format(len(pool), N_PROCS))
@@ -147,11 +157,10 @@ def main():
     # k_shapelets = shapelet_utils.merge(k_shapelets, shapelets)
     k_shapelets = shapelets
 
-    print ("len of 0 is %d"% len(k_shapelets[0].of_same_class))        
 
-    print ("time taken to get all %.2f" % (time.time() - t))    
+    print ("Time taken to compute all: %.2fs" % (time.time() - t))    
     print ("%d candidates before removing duplicates and removing classes without sufficient candidates" % len(k_shapelets))
-    final = shapelet_utils.remove_duplicates(k_shapelets)
+    final = shapelet_utils.remove_duplicates(k_shapelets, 30)
     print ("%d candidates after" % len(final))
     print ("%.2fs elapsed\n%d initial shapelets found\n%d after class check" % (time.time() -t, len(k_shapelets), len(final)))
 
@@ -175,10 +184,28 @@ if __name__ == '__main__':
     parser.add_argument("-s", help="Display series up to cutoff, -s 1000")
     parser.add_argument("-f", help="filename of shapelets to display")
     parser.add_argument("-train", help="filename of shapelets to display", action='store_true')
+    parser.add_argument('-csv', help='to re process and outputs shapelet to file', default=None)
+    parser.add_argument('-min', help='min instances per class before removing', default=None)
+    parser.add_argument('-max', help='max instances per class to include', default=None)
 
     args = parser.parse_args()
 
+    if args.csv:
+        if args.min is None or args.max is None:
+            print ("provide min and max per class")
+            exit(1)
+        min_per_class, max_per_class = int(args.min), int(args.max)
 
+        from pickle import load
+        in_dict = load(open(args.csv, 'rb'))
+        shapelets = in_dict['shapelets']
+        shapelet_dict = in_dict['shapelet_dict']
+        shapelets = shapelet_utils.remove_duplicates(shapelets, min_per_class)
+        from random import randint
+        r = randint(0,10)
+        out_file = 'reprocessed%d-%s' % (r, args.csv.rpartition('/')[2].replace('.graph','.csv'))
+        dump_csv(shapelets, shapelet_dict, max_per_class,  out_file)
+        exit(0)
     if args.g:
         if not args.f:
             print ("Please provide a filename to display")

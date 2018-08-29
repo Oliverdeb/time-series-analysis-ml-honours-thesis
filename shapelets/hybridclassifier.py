@@ -27,22 +27,22 @@ class LSTMClassifier:
         df = df[df.sequence.map(lambda x: False in np.isnan(x))]
         print(df.groupby(['target']).count())
 
-        print (len(df))
-        bertha = 30
-        count = df.groupby(['target']).count()
-        to_include = count.groupby('target').filter(lambda x : x['sequence'].min() > bertha)
-        df = df[[target in to_include['sequence'] for target in df.target]]
+        # print (len(df))
+        # bertha = 30
+        # count = df.groupby(['target']).count()
+        # to_include = count.groupby('target').filter(lambda x : x['sequence'].min() > bertha)
+        # df = df[[target in to_include['sequence'] for target in df.target]]
 
-        to_remove = []
-        for x in df.groupby('target'):
-            indexs = [y for y in x[1].sequence[:bertha + 10].to_frame().index]
-            if indexs != []:
-                to_remove += indexs
-        tokeep = list(set(df.index) - set(to_remove))
-        # print (tokeep)
-        print (len(df))
-        df = df.iloc[to_remove]
-        print (len(df))
+        # to_remove = []
+        # for x in df.groupby('target'):
+        #     indexs = [y for y in x[1].sequence[:bertha + 10].to_frame().index]
+        #     if indexs != []:
+        #         to_remove += indexs
+        # tokeep = list(set(df.index) - set(to_remove))
+        # # print (tokeep)
+        # print (len(df))
+        # df = df.iloc[to_remove]
+        # print (len(df))
         print(df.groupby(['target']).count())
         # exit()
         # store number of classes in dataset
@@ -62,11 +62,11 @@ class LSTMClassifier:
         X_train = pad_sequences(X_train, dtype='float64')
         X_test = pad_sequences(X_test, dtype='float64')
 
-        # return \
-        #     X_train.reshape(len(X_train), len(X_train[0]), 1), \
-        #     y_train, \
-        #     X_test.reshape(len(X_test), len(X_test[0]), 1), \
-        #     y_test
+        return \
+            X_train.reshape(len(X_train), len(X_train[0]), 1), \
+            y_train, \
+            X_test.reshape(len(X_test), len(X_test[0]), 1), \
+            y_test
 
 
     def create_model(self, n):

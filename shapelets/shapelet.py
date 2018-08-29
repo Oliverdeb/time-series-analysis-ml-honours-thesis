@@ -20,7 +20,7 @@ class Shapelet:
         if not self.of_same_class:
             return []
 
-        if n:
+        if n is not None:
             result = []
             i = 0
             for id in self.of_same_class:

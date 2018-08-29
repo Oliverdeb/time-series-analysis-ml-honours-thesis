@@ -59,14 +59,14 @@ class shapelet_utils:
         plt.show()
 
     @staticmethod
-    def remove_duplicates(shapelets):
+    def remove_duplicates(shapelets, min_per_class):
         shapelets.sort(key = lambda x: x.quality, reverse=True)
         final = []
         set_of_shapelets_seen = set()
         i = 0
         n_candidates = len(shapelets)
         while(len(shapelets) > 0):
-            if len(shapelets[0].of_same_class) < 12:
+            if len(shapelets[0].of_same_class) <= min_per_class:
                 break
             # if i % 13 == 0:
                 # print ("\rlen/n=%.2f, using i/n = %.2f" % (1- (len(shapelets) / n_candidates), i/n_candidates), end="")

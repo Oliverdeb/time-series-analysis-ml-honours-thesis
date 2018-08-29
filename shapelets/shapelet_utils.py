@@ -44,35 +44,23 @@ class shapelet_utils:
         import matplotlib.cm as cm
         n_classes = per_class
         fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
-        _min = 400
         # _max = 3000
         for i,shapelet in enumerate(shapelets):
             axes[i].set_title('shapelet' + str(i) + "," + str(len(shapelet.of_same_class) + 1))
-            shapelet.shapelet = shapelet.shapelet - shapelet.shapelet[0]
-            even_y_values = np.linspace(_min, _max, n_classes if len(shapelet.of_same_class) > n_classes else len(shapelet.of_same_class))
-            # diff = - ( shapelet.shapelet[0] - even_y_values[0])
-            # diff = 0
-            axes[i].scatter(range(len(shapelet.shapelet)), shapelet.shapelet)
+            even_y_values = np.linspace(_min, _max, n_classes + 1 )# if len(shapelet.of_same_class) > n_classes else len(shapelet.of_same_class))
+            shapelet.std_shapelet = shapelet.std_shapelet - shapelet.std_shapelet[0] + even_y_values[0]
 
-
-            for e, (j,similar_shapelet) in zip(even_y_values, enumerate(shapelet.of_same_class_objs(shapelet_dict, n_classes))):
-                # print (":test")
-                # diff =  ( similar_shapelet.shapelet[0] - e )
-                similar_shapelet.shapelet = similar_shapelet.shapelet - similar_shapelet.shapelet[0] + e
-
-                # axes[i].scatter(range(len(similar_shapelet.shapelet)),  [y - j*35 for y in similar_shapelet.shapelet])
-                axes[i].scatter(range(len(similar_shapelet.shapelet)),  similar_shapelet.shapelet) #+ diff )#if j % 2 ==0 else similar_shapelet.shapelet - diff)
-            axes[i].set_ylim([_min*0.85 , _max*1.05])
-            # axes[i].set_ylim([-3, 3])
-        
+            axes[i].scatter(range(len(shapelet.shapelet)), shapelet.std_shapelet, c=shapelet.color)
+            for e, similar_shapelet in zip(even_y_values[1:], shapelet.of_same_class_objs(shapelet_dict, n_classes)):
+                similar_shapelet.std_shapelet = similar_shapelet.std_shapelet - similar_shapelet.std_shapelet[0] + e
+                axes[i].scatter(range(len(similar_shapelet.shapelet)),  similar_shapelet.std_shapelet, c=similar_shapelet.color)
+            # axes[i].set_ylim([_min*0.35 , _max*1.15])
         fig.tight_layout()
-        # plt.ylim(2000, 2400)
         plt.show()
 
     @staticmethod
     def remove_duplicates(shapelets):
         shapelets.sort(key = lambda x: x.quality, reverse=True)
-        print ("len is", len(shapelets))
         final = []
         set_of_shapelets_seen = set()
         i = 0
@@ -80,8 +68,8 @@ class shapelet_utils:
         while(len(shapelets) > 0):
             if len(shapelets[0].of_same_class) < 12:
                 break
-            if i % 13 == 0:
-                print ("\rlen/n=%.2f, using i/n = %.2f" % (1- (len(shapelets) / n_candidates), i/n_candidates), end="")
+            # if i % 13 == 0:
+                # print ("\rlen/n=%.2f, using i/n = %.2f" % (1- (len(shapelets) / n_candidates), i/n_candidates), end="")
             curr_shapelet = shapelets[0]
             final.append(curr_shapelet)
             set_of_shapelets_seen.update ([curr_shapelet.id], curr_shapelet.of_same_class)
@@ -90,7 +78,7 @@ class shapelet_utils:
 
             shapelets.sort(key = lambda x: x.quality, reverse=True)
             i += 1
-        print ()
+        # print ()
         return final
 
     @staticmethod
@@ -103,7 +91,7 @@ class shapelet_utils:
     @staticmethod
     def graph(series, shapelets):
         import matplotlib.pyplot as plt
-        import matplotlib.cm as cm
+        import matplotlib.cm as cm        
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -167,17 +155,19 @@ class shapelet_utils:
         return merged
 
     @staticmethod
-    def generate_all_size_candidates(dataset,  _min, _max):
+    def generate_all_size_candidates(dataset, name, id, _min, _max, color):
         candidates = []
         shapelet_dict = {}
-        id = 0 
         for l in range(_min, _max):
-            for i in range(len(dataset) - l + 1):
-                shapelet = Shapelet(np.array(dataset[i:i+l]), i, id)
+            for i in range(len(dataset) - l + 1):                
+                shapelet = Shapelet(np.array(dataset[i:i+l]), i, name, color, id)
+                if shapelet.std == 0:
+                    print ('ignoring')
+                    continue
                 candidates.append(shapelet)
                 shapelet_dict[id] = shapelet
                 id += 1
-        return shapelet_dict, candidates
+        return shapelet_dict, candidates, id
 
     @staticmethod
     def generate_candidates(dataset, window_size):
@@ -205,7 +195,9 @@ class shapelet_utils:
         # shapelet = snd + diff if diff != 0 else snd
         shapelet = snd
         shorter = len(fst) if len(fst) < len(snd) else len(snd)
-        for i in range(1, shorter):
+
+        # change to be from 1 onwards if using diff again
+        for i in range(0, shorter):
             if abs(fst[i] - shapelet[i]) > abs(threshold):
                 return False
         return True

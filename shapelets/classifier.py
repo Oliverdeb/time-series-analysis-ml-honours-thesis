@@ -19,8 +19,10 @@ class LSTMClassifier:
 
         # convert to float
         df['sequence'] = df['sequence'].apply(lambda x: [float(e) for e in x.split()[:20]])
+        
         # standardize each shapelet individually
         df['sequence'] = df['sequence'].apply(zscore)
+        df = df[df.sequence.map(lambda x: False in np.isnan(x))]
 
         # store number of classes in dataset
         self.n_classes = df['target'].values[-1] + 1
@@ -54,7 +56,7 @@ class LSTMClassifier:
             128,
             recurrent_activation="hard_sigmoid",
             activation="sigmoid",
-            input_shape=(20, 1),
+            # input_shape=(20, 1),
             return_sequences=True))
         self.model.add(Dropout(0.5))
 
@@ -67,8 +69,8 @@ class LSTMClassifier:
         self.model.add(Dense(self.n_classes, activation='softmax'))
 
         print ('Compiling...')
-        # self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-        self.model.compile(loss='sparse_categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+        self.model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        # self.model.compile(loss='sparse_categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
     # def train(self, batch_size, epochs):
 if __name__ == "__main__":
@@ -79,7 +81,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     file_name = 'new_out400-20-30-30-37.csv'
-    file_name = 'new_out1000-20-30-24-99.csv'
+    file_name = 'std_26961-20-20-0.7-179.csv'
     input_file = 'output/' + file_name
 
     classifier = LSTMClassifier(input_file)
@@ -91,7 +93,7 @@ if __name__ == "__main__":
         classifier.create_model()
         print ('Fitting model...')
 
-        batch_size = 64
+        batch_size = 256
         epochs = 400
         
         # classifier.train(batch_size, epochs)
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         classifier.model.summary()
         classifier.model.save("mse-rmsprop-{0}_classes_128_batchsize={1}_epochs_{2}_model-{3}.h5".format (classifier.n_classes, batch_size, epochs, file_name.replace('.csv', '')))
         
-        score, acc = classifier.model.evaluate(X_test, y_test, batch_size=1)
+        score, acc = classifier.model.evaluate(X_test, y_test, batch_size=64)
 
         print('Test score:', score)
         print('Test accuracy:', acc)

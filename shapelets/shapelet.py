@@ -1,11 +1,17 @@
 from scipy.stats import zscore
+from numpy import std
 
 class Shapelet:
 
-    def __init__(self, shapelet, index, id=1, quality=0):
+    def __init__(self, shapelet, index, dataset_name, color, id=1, quality=0):
         self.start_index = index
         self.shapelet = shapelet
-        self.std_shapelet = zscore(shapelet)
+        self.color = color
+        self.std = std(shapelet)
+        if self.std == 0:
+            print ("STD OF 0 detected for {}, ignoring".format(shapelet, ))        
+        else:
+            self.std_shapelet = zscore(shapelet)
         self.id = id
         self.quality = quality
         self.dataset_name = dataset_name

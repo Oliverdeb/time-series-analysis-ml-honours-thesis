@@ -1,8 +1,8 @@
 from shapelets.shapelet import Shapelet
 from shapelets.shapelet_utils import shapelet_utils
 # from sklearn.preprocessing import MinMaxScaler
-from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
-from matplotlib.lines import Line2D
+# from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim,show
+# from matplotlib.lines import Line2D
 from pandas import read_csv
 # from shapelets.classifier import LSTMClassifier
 import numpy as np
@@ -77,7 +77,7 @@ def main():
         print ("Error finding data, is './data/jse' present?")
         exit(1)
 
-    if files is []:
+    if files == []:
         print ("Error finding datasets, are there any files in './data/jse/*' ?")
         exit(1)
 
@@ -146,7 +146,7 @@ def main():
     for p in procs:
         p.join()
 
-    print ("DONE")
+    print ("\nDONE")
         
     # shapelets = [shape for result in results for shape in result]
     shapelets = results
@@ -182,108 +182,69 @@ if __name__ == '__main__':
     parser.add_argument("-g",help="amount of shapelets from each class to display, -g 10")
     parser.add_argument("-p",help="eggs per class, -p 10")
     parser.add_argument("-s", help="Display series up to cutoff, -s 1000")
-    parser.add_argument("-f", help="filename of shapelets to display")
-    parser.add_argument("-train", help="filename of shapelets to display", action='store_true')
+    parser.add_argument("-f", help="filename", default=None)
+    parser.add_argument("-shapelets", help="boolean flag for shapelets", action='store_true')
+    parser.add_argument("-trends", help="boolean flag for trend lines", action='store_true')
     parser.add_argument('-csv', help='to re process and outputs shapelet to file', default=None)
     parser.add_argument('-min', help='min instances per class before removing', default=None)
+    parser.add_argument('-mse', help='mse for trend error', default=None)
+    parser.add_argument('-epochs', help='number of epochs', default=None)
+    parser.add_argument('-look_back', help='number of epochs', default=None)
+    parser.add_argument('-batch', help='batch size', default=None)
     parser.add_argument('-max', help='max instances per class to include', default=None)
 
     args = parser.parse_args()
 
-    if args.csv:
-        if args.min is None or args.max is None:
-            print ("provide min and max per class")
+    if args.trends:
+        # run trend line stuff
+        from trend_lines.trendrunner import Trendrunner
+        if args.f is None:
+            print ("Please enter file name")
             exit(1)
-        min_per_class, max_per_class = int(args.min), int(args.max)
+        if None in (args.epochs, args.batch):
+            print ("Enter batch size and epochs")
+            exit(1)
+        if None in (args.mse, args.look_back):
+            print ("Please enter MSE and look_back for trendline extraction")
+            exit(1)
 
-        from pickle import load
-        in_dict = load(open(args.csv, 'rb'))
-        shapelets = in_dict['shapelets']
-        shapelet_dict = in_dict['shapelet_dict']
-        shapelets = shapelet_utils.remove_duplicates(shapelets, min_per_class)
-        from random import randint
-        r = randint(0,10)
-        out_file = 'reprocessed%d-%s' % (r, args.csv.rpartition('/')[2].replace('.graph','.csv'))
-        dump_csv(shapelets, shapelet_dict, max_per_class,  out_file)
-        exit(0)
-    if args.g:
-        if not args.f:
-            print ("Please provide a filename to display")
-
-        # shapelet_utils.graph_classes_from_file(open(args.f), int(args.g))
-
-        from pickle import load
-
-        in_dict = load(open(args.f, 'rb'))
-        shapelets = in_dict['shapelets']
-        shapelet_dict = in_dict['shapelet_dict']
-        _min = 400
-        k = int (args.g)
-        per_class = int (args.p)
-        _max = 400 + per_class*75
-
+        # Trendrunner().run(int(args.mse))
+        Trendrunner().train_baby_train(int(args.epochs), int(args.batch), args.f, int(args.look_back))
         
-        shapelet_utils.graph_classes(shapelets[:k], per_class, _min, _max, shapelet_dict)
-        exit()
+    elif args.shapelets:
 
-    file_name = main()
+        if args.csv:
+            if args.min is None or args.max is None:
+                print ("provide min and max per class")
+                exit(1)
+            min_per_class, max_per_class = int(args.min), int(args.max)
 
-    # if args.train:
-    #     file_name = file_name if not args.f else args.f
+            from pickle import load
+            in_dict = load(open(args.csv, 'rb'))
+            shapelets = in_dict['shapelets']
+            shapelet_dict = in_dict['shapelet_dict']
+            shapelets = shapelet_utils.remove_duplicates(shapelets, min_per_class)
+            from random import randint
+            r = randint(0,10)
+            out_file = 'reprocessed%d-%s' % (r, args.csv.rpartition('/')[2].replace('.graph','.csv'))
+            dump_csv(shapelets, shapelet_dict, max_per_class,  out_file)
+            exit(0)
+        if args.g:
+            if not args.f:
+                print ("Please provide a filename to display")
 
-    #     lstm = LSTMClassifier(file_name)
-    
-    # if args.train:
+            # shapelet_utils.graph_classes_from_file(open(args.f), int(args.g))
 
-    exit()
+            from pickle import load
 
-    from trend_lines.simple_lstm import simple_lstm
-    from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
-    from trend_lines.fit import interpolate, sumsquared_error
-    from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
-    # mod = simple_lstm()
-    # mod.train()
-    # exit(1)
-    with open("data/snp2.csv") as f:
-    # with open("example_data/16265-normalecg.txt") as f:
-        file_lines = f.readlines()
+            in_dict = load(open(args.f, 'rb'))
+            shapelets = in_dict['shapelets']
+            shapelet_dict = in_dict['shapelet_dict']
+            k = int (args.g)
+            per_class = int (args.p)
+            _min = 0
+            _max = 10 + 10*1
 
-    data = [float(x.split("\t")[0].strip()) for x in file_lines]
-
-    max_error = 500
-
-    #sliding window with simple interpolation
-    name = "Sliding window with simple interpolation"
-    figure()
-    start = time.time()
-    segments = slidingwindowsegment(data, interpolate, sumsquared_error, max_error)
-    stats(name, max_error, start, segments, data)
-    draw_plot(data, name)
-    draw_segments(segments)
-
-
-    #bottom-up with  simple interpolation
-    name = "Bottom-up with simple interpolation"
-    figure()
-    start = time.time()
-    segments = bottomupsegment(data, interpolate, sumsquared_error, max_error)
-    stats(name, max_error, start, segments, data)
-    draw_plot(data,name)
-    draw_segments(segments)
-
-    #top-down with  simple interpolation
-    name = "Top-down with simple interpolation"
-    figure()
-    start = time.time()
-    segments = topdownsegment(data, interpolate, sumsquared_error, max_error)
-    stats(name, max_error, start, segments, data)
-    draw_plot(data,name)
-    draw_segments(segments)
-    
-    # only uses from topdown ?
-    with open ('slope_dur.csv', 'w') as f:
-        f.write('slope,duration')
-        for slope, duration in convert_to_slope_duration(segments):
-            f.write(  ','.join( ( "%.2f" % slope, "%d" % duration )) + "\n")
-
-    # show()
+            
+            shapelet_utils.graph_classes(shapelets[:k], per_class, _min, _max, shapelet_dict)
+            exit(0)

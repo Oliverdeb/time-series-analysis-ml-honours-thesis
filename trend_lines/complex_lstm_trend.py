@@ -6,15 +6,20 @@ import numpy as np
 import argparse
 
 class complex_lstm:
-    def __init__(self, file_name):
-        pass
+    def __init__(self, point_file, file_name, batch_size, epochs, look_back):
+        self.point_file = point_file
+        self.file_name = file_name
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.look_back = look_back
+        self.create_model()
 
-    def load_data(self, file_name, look_back=1, test_split = 0.33):
+    def load_data(self, test_split = 0.33):
         print ('Loading data...')
-        df = pd.read_csv(file_name)
+        df = pd.read_csv(self.file_name)
         dataset = df.values.astype('float32')
 
-        x, y = self.create_dataset(dataset, look_back)
+        x, y = self.create_dataset(dataset, self.look_back)
         train_size = int(len(dataset) * (1 - test_split))
 
         X_train = np.array(x[:train_size])
@@ -35,10 +40,10 @@ class complex_lstm:
     def create_model(self):
         print ('Creating model...')
         self.model = Sequential()
-        self.model.add(LSTM(256, return_sequences=True))#, input_shape=(40, 2)))
+        self.model.add(LSTM(128)) #, return_sequences=True))#, input_shape=(40, 2)))
         self.model.add(Dropout(0.15))
-        self.model.add(LSTM(128))#, input_shape=(40, 2)))
-        self.model.add(Dropout(0.15))
+        # self.model.add(LSTM(128))#, input_shape=(40, 2)))
+        # self.model.add(Dropout(0.15))s
 
         self.model.add(Dense(2))
 
@@ -47,6 +52,40 @@ class complex_lstm:
 
         # model.summary()
         return self.model
+
+    def train(self):
+        X_train, y_train, X_test, y_test = self.load_data()
+        X_train = X_train.reshape(len(X_train), len(X_train[0]), 2)
+        X_test = X_test.reshape(len(X_test), len(X_test[0]), 2)
+        self.model.fit(X_train, y_train, batch_size=self.batch_size, epochs=self.epochs, validation_split = 0.1, verbose = 0)
+        start = int(sum((x[0][1] for x in X_train)))
+        # print ("starty",start)
+        testPredict = self.model.predict(X_test)
+        points = [x[0] for x in pd.read_csv(self.point_file, usecols=[1]).values]
+        def mse_trend(points, trend):
+            x, err = 0.0, 0.0
+            for p in points:
+                y_hat = x*trend[0] + points[0]
+                err += (y_hat - p) ** 2
+                x += 1
+            return err
+
+        sse = 0.0
+        # print ('xtest', [x[1] for x in X_test[0]])
+        start += int(sum( (x[1] for x in X_test[0]) ))
+
+        for predicted,actual in zip(testPredict, y_test):
+            points_trend = points[start : start + int(predicted[1])]
+            start += int(actual[1])
+            sse += mse_trend(points_trend, predicted)
+        
+        mse = sse/len(testPredict)
+        print ("Test MSE: %.2f" % mse )
+        print ("Test RMSE: %.2f" % np.sqrt(mse))
+
+    def run(self):
+        self.train()
+
 
 if __name__ == "__main__":
 
@@ -119,8 +158,8 @@ if __name__ == "__main__":
         start += int(actual[1])
         sse += mse_trend(points_trend, predicted)
     mse = sse/len(testPredict)
-    print ("MSE: %.2f" % mse )
-    print ("RMSE: %.2f" % np.sqrt(mse))
+    print ("Test MSE: %.2f" % mse )
+    print ("Test RMSE: %.2f" % np.sqrt(mse))
     # X_train, y_train, X_test, y_test = load_data()
     # X_train = X_train.reshape(len(X_train), len(X_train[0]), 1)
 

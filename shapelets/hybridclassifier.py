@@ -80,13 +80,13 @@ class LSTMClassifier:
                 activation="sigmoid",
                 input_shape=(20, 1),
                 return_sequences=True))
-            model.add(Dropout(0.25))
+            # model.add(Dropout(0.15))
 
             model.add(LSTM(
                 128,
                 recurrent_activation="hard_sigmoid",
                 activation="sigmoid"))
-            model.add(Dropout(0.5))
+            # model.add(Dropout(0.25))
 
             model.add(Dense(self.n_classes, activation='softmax'))
         print ('Compiling...')
@@ -123,29 +123,34 @@ if __name__ == "__main__":
         # exit(1)
         n_gpus = int(args.gpu)
         print ('Fitting model...')
-        if n_gpus != 0:
-            original_model, parallel_model = classifier.create_model(n_gpus)
-            model = parallel_model
-        else:
-            original_model = classifier.create_model(n_gpus)
-            model = original_model
-            n_gpus = 1
-        batch_size = 256
-        epochs = 600
-        
-        # classifier.train(batch_size, epochs)
-        hist = model.fit(X_train, y_train, batch_size=batch_size*n_gpus, epochs=epochs, validation_split = 0.1, verbose = 1)
 
-        model.summary()
-        original_model.save("mse-rmsprop-{0}_classes_128_batchsize={1}_epochs_{2}_model-{3}.h5".format (classifier.n_classes, batch_size, epochs, file_name.replace('.csv', '')))
-        
-        score, acc = model.evaluate(X_test, y_test, batch_size=128)
+        for epochs in [300, 600, 1000, 1500, 2000]:
+            
+            if n_gpus != 0:
+                original_model, parallel_model = classifier.create_model(n_gpus)
+                model = parallel_model
+            else:
+                original_model = classifier.create_model(n_gpus)
+                model = original_model
+                n_gpus = 1
+            batch_size = 384
+            # epochs = 600
+            
+            # classifier.train(batch_size, epochs)
+            hist = model.fit(X_train, y_train, batch_size=batch_size*n_gpus, epochs=epochs, validation_split = 0.1, verbose = 1)
 
-        print('Test score:', score)
-        print('Test accuracy:', acc)
+            model.summary()
+            original_model.save("prettysarah-{0}_classes_128_batchsize={1}_epochs_{2}_model-{3}.h5".format (classifier.n_classes, batch_size, epochs, file_name.replace('.csv', '')))
+            
+            score, acc = model.evaluate(X_test, y_test, batch_size=128)
+
+            print('Test score:', score)
+            print('Test accuracy:', acc)
     else:
         print ("Loading model from file...")
-        model = load_model(args.load)        
+        model = load_model(args.load)
+
+        model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     pls = []
     # for line in open('../data/snp2.csv').readlines()[100:110]:
         # pls.append([float(x) for x in line.split(',')[1].split(' ')][:20])
@@ -163,7 +168,15 @@ if __name__ == "__main__":
     
     X_train, y_train, X_test, y_test = classifier.load_data()
     X_train = X_train.reshape(len(X_train), len(X_train[0]), 1)
-    
+    predictions = model.predict(X_test, batch_size=128)
+    n_correct = [pred.argmax() == y for pred,y in zip(predictions, y_test)]
+    acc = n_correct / len(predictions)
+    # for prediction in predictions:
+
+    # score, acc = model.evaluate(X_test, y_test, batch_size=128)
+
+    print('Test score:', score)
+    print('Test accuracy:', acc)
     test2 = test2.reshape( 20,  1)
 
     # fix offset to 0

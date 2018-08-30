@@ -3,11 +3,12 @@ from numpy import std
 
 class Shapelet:
 
-    def __init__(self, shapelet, index, dataset_name, color, id=1, quality=0):
+    def __init__(self, shapelet, index=None, dataset_name=None, color=None, id=1, quality=0):
         self.start_index = index
         self.shapelet = shapelet
         self.color = color
         self.std = std(shapelet)
+        self.of_same_class = None
         if self.std == 0:
             print ("STD OF 0 detected for {}, ignoring".format(shapelet, ))        
         else:
@@ -56,6 +57,14 @@ class Shapelet:
         for elem in self.shapelet[1:]:
             csv += ' ' + str(elem)
         return csv
+    
+    def __sub__(self, other):
+        # diff = - (other.shapelet[0] - self.shapelet[0])
+        # other_ = other.shapelet + diff if diff != 0 else other.shapelet
+        return abs(self.std_shapelet - other.std_shapelet)
             
+    def __matmul__(self, other):
+        return sum(self - other)
+
     def __str__(self):
         return "start index" + str(self.start_index) + " " +  str(self.shapelet)

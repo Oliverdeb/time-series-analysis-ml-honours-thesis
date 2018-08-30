@@ -34,7 +34,10 @@ def analyze_sets():
         legend = key.split('-')[1]
         plt.plot(sets[key].values, label='%d LEAST var %s: %.2f' % (3-i, legend, files[key]['variance']))
         print ('%s:' % key, files[key])
-    
+    # hehe =len(list_files)//2
+    # for key in list_files[hehe-2:hehe+1]:
+    #     plt.plot(sets[key].values, label='%d normal var %s: %.2f' % (3-i, legend, files[key]['variance']))
+
     # most = list_files[0]
     # least = list_files[-1]
     plt.legend(loc='best')

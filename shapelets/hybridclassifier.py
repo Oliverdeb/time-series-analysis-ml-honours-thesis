@@ -108,11 +108,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-load", help="load model from file", default=None)
     parser.add_argument("-gpu", help="number of gpus to run on", required=True)
+    parser.add_argument("-f", help="filename", required=True)
 
     args = parser.parse_args()
 
     file_name = 'new_out400-20-30-30-37.csv'
-    file_name = 'std_186892-20-20-0.7-1256.csv'
+    file_name = args.f if args.f else 'std_186892-20-20-0.7-1256.csv'
     # file_name = '1000-20-30-20-38-standardized.csv'
     input_file = 'output/' + file_name
 

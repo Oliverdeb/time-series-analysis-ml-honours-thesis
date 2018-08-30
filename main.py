@@ -16,7 +16,7 @@ def work(pid, out_q, my_pool, pool, mse_threshold):
     primes = [31,37,41,43,47,53,59,61]
     prime = primes[randint(0, len(primes) -1)]
     for i,candidate in enumerate(my_pool):
-        if i % prime == 0 :
+        if pid < 15 and i % prime == 0 :
             print ("\r%s%.2f"%(tabs, i/total), end="")
 
         candidate.of_same_class = shapelet_utils.find_new_mse(candidate, pool, mse_threshold)
@@ -55,17 +55,19 @@ def dump_csv(shapelets, shapelet_dict, max_per_class, file_name):
             f.write(str(i) + "," + shapelet.to_csv() + "\n")
             for similar in shapelet.of_same_class_objs(shapelet_dict, max_per_class):
                 f.write(str(i) + "," + similar.to_csv() + "\n")
-def main():
+def main(mse=0.5, n_procs=8, min=None, max=None):
     t = time.time()
 
-    _min = 20
-    _max = 20
+    _min = int(min) if min else 35
+    _max = int(max) if max else 35
+    N_PROCS = int(n_procs) if n_procs else 8
 
     k_shapelets = []
     k = 10
-    mse_threshold = 0.7
+    mse_threshold = float(mse) if mse else 0.5
     
     print ("Using shapelet threshold-cutoff of: %.2f" % mse_threshold)
+    print ("Min: %d, Max: %d" % (_min, _max))
     
     id = 0
     datasets = []
@@ -107,7 +109,6 @@ def main():
 
     # shuffle array so that work is evenly distributed betweens processes
     # np.random.shuffle(pool)
-    N_PROCS = 8
 
     print ("{0} candidates, {1} processes spawning".format(len(pool), N_PROCS))
 
@@ -179,9 +180,9 @@ def main():
 if __name__ == '__main__':  
 
     parser  = argparse.ArgumentParser()
-    parser.add_argument("-g",help="amount of shapelets from each class to display, -g 10")
-    parser.add_argument("-p",help="eggs per class, -p 10")
-    parser.add_argument("-s", help="Display series up to cutoff, -s 1000")
+    parser.add_argument("-g",help="amount of shapelets from each class to display, -g 10", default=None)
+    parser.add_argument("-p",help="instances per class, -p 10", default=None)
+    parser.add_argument("-s", help="Display series up to cutoff, -s 1000", default=None)
     parser.add_argument("-f", help="filename", default=None)
     parser.add_argument("-shapelets", help="boolean flag for shapelets", action='store_true')
     parser.add_argument("-trends", help="boolean flag for trend lines", action='store_true')
@@ -189,7 +190,8 @@ if __name__ == '__main__':
     parser.add_argument('-min', help='min instances per class before removing', default=None)
     parser.add_argument('-mse', help='mse for trend error', default=None)
     parser.add_argument('-epochs', help='number of epochs', default=None)
-    parser.add_argument('-look_back', help='number of epochs', default=None)
+    parser.add_argument('-procs', help='number of processes to spawn for shapelet extraction', default=None)
+    parser.add_argument('-look_back', help='look_back', default=None)
     parser.add_argument('-batch', help='batch size', default=None)
     parser.add_argument('-max', help='max instances per class to include', default=None)
 
@@ -218,7 +220,7 @@ if __name__ == '__main__':
                 print ("provide min and max per class")
                 exit(1)
             min_per_class, max_per_class = int(args.min), int(args.max)
-
+            
             from pickle import load
             in_dict = load(open(args.csv, 'rb'))
             shapelets = in_dict['shapelets']
@@ -229,7 +231,7 @@ if __name__ == '__main__':
             out_file = 'reprocessed%d-%s' % (r, args.csv.rpartition('/')[2].replace('.graph','.csv'))
             dump_csv(shapelets, shapelet_dict, max_per_class,  out_file)
             exit(0)
-        if args.g:
+        elif args.g:
             if not args.f:
                 print ("Please provide a filename to display")
 
@@ -248,3 +250,6 @@ if __name__ == '__main__':
             
             shapelet_utils.graph_classes(shapelets[:k], per_class, _min, _max, shapelet_dict)
             exit(0)
+        
+                
+        main(args.mse, args.procs, args.min, args.max)

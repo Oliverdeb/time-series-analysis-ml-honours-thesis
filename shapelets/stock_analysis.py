@@ -30,7 +30,7 @@ def analyze_sets():
         print ('%s:' % key, files[key])
     
     print ("\n\nTop 3 LEAST variable stocks (most stable?)")    
-    for i,key in enumerate(list_files[-3:]):
+    for i,key in enumerate(list_files[:-4:-1]):
         legend = key.split('-')[1]
         plt.plot(sets[key].values, label='%d LEAST var %s: %.2f' % (3-i, legend, files[key]['variance']))
         print ('%s:' % key, files[key])

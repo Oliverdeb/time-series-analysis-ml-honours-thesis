@@ -14,8 +14,18 @@ class shapelet_utils:
         return diff
 
     @staticmethod
-    def search_classes(shapelets, shapelets_dict):
-        pass
+    def search_classes(future_shape, shapelets, shapelets_dict, threshold):
+        min = np.iinfo('int32').max
+        min_id = None
+
+        for shape in shapelets:
+            # if within threshold then check
+            if shapelet_utils.mse_dist(future_shape.std_shapelet, shape.std_shapelet, threshold):
+                sum_dist = future_shape @ shape
+                if sum_dist < min:
+                    min = sum_dist
+                    min_id = shape.id
+        return min_id
 
     @staticmethod
     def search_instance_of_class(future_shape, class_id, shapelet_dict, threshold):
@@ -23,17 +33,12 @@ class shapelet_utils:
         min_id = None
 
         of_same_class = shapelet_dict[class_id].of_same_class_objs(shapelet_dict)
-        print ('len before filter by thresh %d'% len(of_same_class))
-        mygen = [shapelet for shapelet in of_same_class
-                if shapelet_utils.mse_dist(future_shape.std_shapelet, shapelet.std_shapelet, threshold)]
-        print('len after %d ' % len(mygen))
         
-        for instance in mygen:
+        for instance in of_same_class:
             sum_dist = future_shape @ instance
             if sum_dist < min:
                 min = sum_dist
                 min_id = instance.id
-        print ('min id is ', min_id)
         return min_id
 
     @staticmethod
@@ -58,6 +63,32 @@ class shapelet_utils:
                     similar_shapelet.std_shapelet[0] + e
                 axes[i].scatter(range(len(similar_shapelet.shapelet)),
                                 similar_shapelet.std_shapelet, c=similar_shapelet.color)
+            # axes[i].set_ylim([_min*0.35 , _max*1.15])
+        fig.tight_layout()
+        plt.show()
+
+    @staticmethod
+    def graph_classes_shapelets(shapelets, per_class, _min, _max, shapelet_dict):
+        import matplotlib.pyplot as plt
+        import matplotlib.cm as cm
+        n_classes = per_class
+        fig, axes = plt.subplots(nrows=1, ncols=len(shapelets))
+        # _max = 3000
+        for i, shapelet in enumerate(shapelets):
+            axes[i].set_title('shapelet' + str(i) + "," +
+                              str(len(shapelet.of_same_class) + 1))
+            # if len(shapelet.of_same_class) > n_classes else len(shapelet.of_same_class))
+            even_y_values = np.linspace(_min, _max, n_classes + 1)
+            shapelet.shapelet = shapelet.shapelet - \
+                shapelet.shapelet[0] + even_y_values[0]
+
+            axes[i].scatter(range(len(shapelet.shapelet)),
+                            shapelet.shapelet, c=shapelet.color)
+            for e, similar_shapelet in zip(even_y_values[1:], shapelet.of_same_class_objs(shapelet_dict, n_classes)):
+                similar_shapelet.shapelet = similar_shapelet.shapelet - \
+                    similar_shapelet.shapelet[0] + e
+                axes[i].scatter(range(len(similar_shapelet.shapelet)),
+                                similar_shapelet.shapelet, c=similar_shapelet.color)
             # axes[i].set_ylim([_min*0.35 , _max*1.15])
         fig.tight_layout()
         plt.show()
@@ -186,14 +217,28 @@ class shapelet_utils:
 
     @staticmethod
     def find_new_mse(candidate, shapelets, threshold):
-        return {
-            shapelet.id
-            for shapelet in shapelets
-            # if  abs (shapelet.start_index - candidate.start_index) > 10
-            if candidate.id != shapelet.id
-            and abs(len(candidate.shapelet) - len(shapelet.shapelet)) <= 5
-            and shapelet_utils.mse_dist(candidate.std_shapelet, shapelet.std_shapelet, threshold)
-        }
+        candidates = set()
+        candidate_length = len(candidate.shapelet)
+        for shapelet in shapelets:
+
+            if shapelet.dataset_name == candidate.dataset_name:
+                if abs (shapelet.start_index - candidate.start_index) <= 10:
+                    continue
+                # pass
+            
+            if candidate.id != shapelet.id and abs(candidate_length - len(shapelet.shapelet)) <= 5 and shapelet_utils.mse_dist(candidate.std_shapelet, shapelet.std_shapelet, threshold):
+                candidates.add(shapelet.id)
+
+        return candidates           
+
+        # return {
+        #     shapelet.id
+        #     for shapelet in shapelets
+        #     # if  (shapelet.dataset_name == candidate.dataset_name and abs (shapelet.start_index - candidate.start_index) > 5)
+        #     if candidate.id != shapelet.id
+        #     and abs(len(candidate.shapelet) - len(shapelet.shapelet)) <= 5
+        #     and shapelet_utils.mse_dist(candidate.std_shapelet, shapelet.std_shapelet, threshold)
+        # }
 
     @staticmethod
     def mse_dist(fst, snd, threshold):

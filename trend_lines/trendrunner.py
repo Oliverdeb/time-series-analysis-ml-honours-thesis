@@ -35,8 +35,8 @@ class Trendrunner:
         segments = slidingwindowsegment(
             data, interpolate, sumsquared_error, max_error)
         stats(name, max_error, start, segments, data)
-        # draw_plot(data, name)
-        # draw_segments(segments)
+        draw_plot(data, name)
+        draw_segments(segments)
         dump_csv('sliding-window')
 
         # bottom-up with  simple interpolation
@@ -46,8 +46,8 @@ class Trendrunner:
         segments = bottomupsegment(
             data, interpolate, sumsquared_error, max_error)
         stats(name, max_error, start, segments, data)
-        # draw_plot(data, name)
-        # draw_segments(segments)
+        draw_plot(data, name)
+        draw_segments(segments)
         dump_csv('bottom-up')
 
         
@@ -58,10 +58,10 @@ class Trendrunner:
         segments = topdownsegment(
             data, interpolate, sumsquared_error, max_error)
         stats(name, max_error, start, segments, data)
-        # draw_plot(data, name)
-        # draw_segments(segments)
+        draw_plot(data, name)
+        draw_segments(segments)
 
-        dump_csv('top-down')
+        # dump_csv('top-down')
 
         # show()
 

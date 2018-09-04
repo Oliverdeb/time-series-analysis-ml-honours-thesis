@@ -61,10 +61,17 @@ class Shapelet:
     def __sub__(self, other):
         # diff = - (other.shapelet[0] - self.shapelet[0])
         # other_ = other.shapelet + diff if diff != 0 else other.shapelet
-        return abs(self.std_shapelet - other.std_shapelet)
+
+        # should this use standardized shape or not?
+        shorter = len(self.std_shapelet) if \
+            len(self.std_shapelet) < len(other.std_shapelet) \
+                else len(other.std_shapelet)
+        
+        return abs(self.std_shapelet[:shorter] - other.std_shapelet[:shorter])
+        # return abs(self.std_shapelet - other.std_shapelet)
             
     def __matmul__(self, other):
         return sum(self - other)
 
     def __str__(self):
-        return "start index" + str(self.start_index) + " " +  str(self.shapelet)
+        return "id: %d, shapelet: %s, of_class: %s" % (self.id,  str(self.shapelet), str(self.of_same_class))

@@ -11,12 +11,12 @@ import time, argparse, multiprocessing, os
 def work(pid, out_q, my_pool, pool, mse_threshold):
     tabs = '\t' * pid
     total = float(len(my_pool))
-    results = []
+    
     from random import randint
-    primes = [31,37,41,43,47,53,59,61]
-    prime = primes[randint(0, len(primes) -1)]
+    prime = [31,37,41,43,47,53,59,61][randint(0, 8 -1)]
+
     for i,candidate in enumerate(my_pool):
-        if pid < 15 and i % prime == 0 :
+        if pid < 20 and i % prime == 0 :
             print ("\r%s%.2f"%(tabs, i/total), end="")
 
         candidate.of_same_class = shapelet_utils.find_new_mse(candidate, pool, mse_threshold)
@@ -25,8 +25,6 @@ def work(pid, out_q, my_pool, pool, mse_threshold):
         out_q.put(candidate)
     # out_q.put(results)
     out_q.put('DONE')
-    # with open(str(pid) + '.out', 'w') as f:
-    #     pickle.dump(results, f)
 
 def output_to_file(file_name, shapelets, shapelet_dict):
 
@@ -52,10 +50,11 @@ def dump_csv(shapelets, shapelet_dict, max_per_class, file_name):
     with open(file_name, 'w') as f:
         f.write("target,sequence\n")
         for i,shapelet in enumerate(shapelets):
-            f.write(str(i) + "," + shapelet.to_csv() + "\n")
+            f.write(str(i) + "," + shapelet.to_csv_offset_0() + "\n")
             for similar in shapelet.of_same_class_objs(shapelet_dict, max_per_class):
-                f.write(str(i) + "," + similar.to_csv() + "\n")
-def main(mse=0.5, n_procs=8, min=None, max=None):
+                f.write(str(i) + "," + similar.to_csv_offset_0() + "\n")
+                
+def main(mse=0.5, n_procs=8, min=None, max=None, snp=False):
     t = time.time()
 
     _min = int(min) if min else 35
@@ -83,11 +82,17 @@ def main(mse=0.5, n_procs=8, min=None, max=None):
         print ("Error finding datasets, are there any files in './data/jse/*' ?")
         exit(1)
 
-    for _file in files[:1]:
-        dataset = read_csv(os.path.join(archive_dir, _file), usecols=[1])
+    if args.snp:
+        dataset = read_csv('data/snp2.csv', usecols=[0])
         datasets.append(([
-            x[0] for x in dataset.values.astype('float32')],
-            _file))
+            x[0] for x in dataset.values.astype('float32')[:1000]],
+            'snp2.csv'))
+    else:
+        for _file in files:
+            dataset = read_csv(os.path.join(archive_dir, _file), usecols=[1])
+            datasets.append(([
+                x[0] for x in dataset.values.astype('float32')],
+                _file))
 
     shapelet_dict = {}
     candidate_pool = []
@@ -130,10 +135,9 @@ def main(mse=0.5, n_procs=8, min=None, max=None):
             args=(pid, out_q, pool[pool_range[0]: pool_range[1]], pool, mse_threshold,)
         )
         procs.append(p)
-
+    print ("Displaying a max of 20 process outputs")
     for p in procs:
         p.start()
-
     results = []
     procs_done = 0
 
@@ -161,7 +165,7 @@ def main(mse=0.5, n_procs=8, min=None, max=None):
 
     print ("Time taken to compute all: %.2fs" % (time.time() - t))    
     print ("%d candidates before removing duplicates and removing classes without sufficient candidates" % len(k_shapelets))
-    final = shapelet_utils.remove_duplicates(k_shapelets, 30)
+    final = shapelet_utils.remove_duplicates(k_shapelets, 20)
     print ("%d candidates after" % len(final))
     print ("%.2fs elapsed\n%d initial shapelets found\n%d after class check" % (time.time() -t, len(k_shapelets), len(final)))
 
@@ -193,7 +197,9 @@ if __name__ == '__main__':
     parser.add_argument('-procs', help='number of processes to spawn for shapelet extraction', default=None)
     parser.add_argument('-look_back', help='look_back', default=None)
     parser.add_argument('-batch', help='batch size', default=None)
+    parser.add_argument('-snp', help='run on snp dataset', action='store_true')
     parser.add_argument('-max', help='max instances per class to include', default=None)
+    parser.add_argument('-std', help='display standardized shapelets or not',  action='store_true')
 
     args = parser.parse_args()
 
@@ -210,11 +216,10 @@ if __name__ == '__main__':
             print ("Please enter MSE and look_back for trendline extraction")
             exit(1)
 
-        # Trendrunner().run(int(args.mse))
-        Trendrunner().train_baby_train(int(args.epochs), int(args.batch), args.f, int(args.look_back))
+        Trendrunner().run(int(args.mse))
+        # Trendrunner().train_baby_train(int(args.epochs), int(args.batch), args.f, int(args.look_back))
         
-    elif args.shapelets:
-
+    else:
         if args.csv:
             if args.min is None or args.max is None:
                 print ("provide min and max per class")
@@ -234,7 +239,6 @@ if __name__ == '__main__':
         elif args.g:
             if not args.f:
                 print ("Please provide a filename to display")
-
             # shapelet_utils.graph_classes_from_file(open(args.f), int(args.g))
 
             from pickle import load
@@ -245,11 +249,15 @@ if __name__ == '__main__':
             k = int (args.g)
             per_class = int (args.p)
             _min = 0
-            _max = 10 + 10*1
 
-            
-            shapelet_utils.graph_classes(shapelets[:k], per_class, _min, _max, shapelet_dict)
+            if args.std:
+                _max = 10 + 10*2
+                shapelet_utils.graph_classes(shapelets[:k], per_class, _min, _max, shapelet_dict)
+            else:
+                _max = 500 + 10*25
+                shapelet_utils.graph_classes_shapelets(shapelets[:k], per_class, _min, _max, shapelet_dict)
+                
             exit(0)
         
                 
-        main(args.mse, args.procs, args.min, args.max)
+        main(args.mse, args.procs, args.min, args.max, args.snp)

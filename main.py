@@ -234,6 +234,7 @@ if __name__ == '__main__':
             from random import randint
             r = randint(0,10)
             out_file = 'reprocessed%d-%s' % (r, args.csv.rpartition('/')[2].replace('.graph','.csv'))
+            print ('outfile is:%s' % out_file)
             dump_csv(shapelets, shapelet_dict, max_per_class,  out_file)
             exit(0)
         elif args.g:

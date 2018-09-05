@@ -92,18 +92,18 @@ class LSTMClassifier:
                 activation="sigmoid",
                 input_shape=(20, 1),
                 recurrent_dropout=0.2,
-                dropout=0.2,
-                return_sequences=True))
-            # ))
-            # model.add(Dropout(0.5))
+                # dropout=0.2,
+                # return_sequences=True))
+            ))
+            model.add(Dropout(0.5))
 
             # model.add(LSTM(
-            #     256,
+            #     64,
             #     recurrent_activation="hard_sigmoid",
-            #     recurrent_dropout=0.2,
-            #     dropout=0.5,
+            #     recurrent_dropout=0.1,
+            #     # dropout=0.5,
             #     activation="sigmoid"))
-            # model.add(Dropout(0.5))
+            # model.add(Dropout(0.25))
 
             model.add(Dense(self.n_classes, activation='softmax'))
         print ('Compiling...')
@@ -162,8 +162,13 @@ if __name__ == "__main__":
         hist = model.fit(X_train, y_train, batch_size=batch_size*n_gpus, epochs=epochs, validation_split = 0.1, verbose = 1)
 
         model.summary()
-        original_model.save("prettysarah-{0}_classes_128_batchsize={1}_epochs_{2}_model-{3}.h5".format (classifier.n_classes, batch_size, epochs, file_name.replace('.csv', '')))
+        model_name = "{0}_classes_128_batchsize={1}_epochs_{2}_model-{3}.h5".format (classifier.n_classes, batch_size, epochs, file_name.replace('.csv', ''))
+        original_model.save(model_name)
+        from pickle import dump
+
+        test_data = [(x, label) for x,label in zip(X_test.reshape(len(X_test), len(X_test[0])), y_test)]
         
+        dump(test_data, open('test_data_output'+model_name, 'wb'))
         score, acc = model.evaluate(X_test, y_test, batch_size=32)
 
         print('Test score:', score)
@@ -188,15 +193,20 @@ if __name__ == "__main__":
     test2 = zscore(test2)
     test2 = np.array([test2])
     
+    
     if args.load:
         X_train, y_train, X_test, y_test = classifier.load_data(args.std)
         X_train = pad_sequences(X_train, dtype='float64')
         X_train = X_train.reshape(len(X_train), len(X_train[0]), 1)
 
+    # print (X_test, y_test)
+    
     predictions = model.predict(X_test, batch_size=32)
     print ('custom test:\n')
     # for pred,y in zip(predictions, y_test):
-        # print (pred.argmax(), y, pred.argmax() == y)
+    #     pred.sort()
+    #     print (pred[-3:],'\n\n')
+        # print (pred.max(), pred.argmax(), y, pred.argmax() == y)
     n_correct = [1 for pred,y in zip(predictions, y_test) if pred.argmax() == y]
     acc = len(n_correct) / len(predictions)
     # for prediction in predictions:

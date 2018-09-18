@@ -4,14 +4,13 @@ class Trendrunner:
 
     def run(self, mse=None):
         import time
-        from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim, show
-        from matplotlib.lines import Line2D
+        # from matplotlib.pylab import gca, figure, plot, subplot, title, xlabel, ylabel, xlim, show
+        from matplotlib.pylab import figure
+        # from matplotlib.lines import Line2D
         from trend_lines.segment import slidingwindowsegment, bottomupsegment, topdownsegment
         from trend_lines.fit import interpolate, sumsquared_error
         from trend_lines.wrappers import stats, convert_to_slope_duration, draw_plot, draw_segments
-        # mod = simple_lstm()
-        # mod.train()
-        # exit(1)
+        
         with open("data/snp2.csv") as f:
             # with open("example_data/16265-normalecg.txt") as f:
             file_lines = f.readlines()

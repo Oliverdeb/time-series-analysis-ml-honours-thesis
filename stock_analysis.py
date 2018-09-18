@@ -4,9 +4,12 @@ from pandas import read_csv
 
 files = {}
 
-archive_dir = '../data/jse'
+archive_dir = 'data/jse'
 
 def analyze_sets():
+    """
+    Function that performs basic stats on the datasets and outputs the least, middle and most variable stocks.
+    """
     files = {}
     sets = {}
     for _file in os.listdir(archive_dir):
@@ -24,26 +27,36 @@ def analyze_sets():
     import matplotlib.pyplot as plt
 
     print ("Top 3 most variable stocks")
-    for i,key in enumerate(list_files[:3]):
+    for i,key in enumerate(list_files[:1]):
         legend = key.split('-')[1]    
-        plt.plot(sets[key].values, label='%d MOST variable %s: %.2f' % (i+1, legend, files[key]['variance']))    
+        plt.plot(list(reversed(sets[key].values))[-2000:], label=legend)    
+        # plt.plot(sets[key].values[:2500], label=legend)    
         print ('%s:' % key, files[key])
 
-    k = list_files[len(list_files) // 2]
-    print ("\nMiddle ish:\n%s"%k, files[k])
-    print ("\n\nTop 3 LEAST variable stocks (most stable?)")    
-
-    for i,key in enumerate(list_files[:-4:-1]):
+    print ("\n\nMiddle")    
+    leng = int(len(list_files)/2)
+    for i,key in enumerate(list_files[leng:leng+1]):
         legend = key.split('-')[1]
-        plt.plot(sets[key].values, label='%d LEAST var %s: %.2f' % (3-i, legend, files[key]['variance']))
+        plt.plot(list(reversed(sets[key].values))[-2000:], label=legend)
+        # plt.plot(sets[key].values[:2500], label=legend)    
+
         print ('%s:' % key, files[key])
-        
-    hehe =len(list_files)//2
-    for key in list_files[hehe-2:hehe+1]:
-        plt.plot(sets[key].values, label='%d normal var %s: %.2f' % (3-i, legend, files[key]['variance']))
+    
+    print ("\n\nTop 3 least variable stocks (most stable?)")    
+    for i,key in enumerate(list_files[-1:]):
+        legend = key.split('-')[1]
+        plt.plot(list(reversed(sets[key].values))[-2000:], label=legend)
+        # plt.plot(sets[key].values[:2500], label=legend)    
+
+        print ('%s:' % key, files[key])
+    # hehe =len(list_files)//2
+    # for key in list_files[hehe-2:hehe+1]:
+    #     plt.plot(sets[key].values, label='%d normal var %s: %.2f' % (3-i, legend, files[key]['variance']))
 
     # most = list_files[0]
     # least = list_files[-1]
+    plt.xlabel("Time (days)")
+    plt.ylabel("Price (ZAR)")
     plt.legend(loc='best')
     plt.show()
     
@@ -52,6 +65,9 @@ def analyze_sets():
 
 
 def remove_below_n_lines(n):
+    """
+    Function that removes datasets with less than N data points.
+    """
     for _file in os.listdir(archive_dir):
         print (_file)
         _file_ = open(os.path.join(archive_dir, _file), 'rb')

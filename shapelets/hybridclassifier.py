@@ -137,6 +137,7 @@ if __name__ == "__main__":
         n_gpus = int(args.gpu)
         print ('Fitting model...')
             
+        # create and compile model
         if n_gpus != 0:
             original_model, parallel_model = classifier.create_model(n_gpus)
             model = parallel_model
@@ -150,6 +151,7 @@ if __name__ == "__main__":
         print ("Training on shapes with LOOKBACK OF %d\n" % classifier.look_back,'='*40,sep='')
         epochs = 600 if not args.epochs else int(args.epochs)
         
+        # train model
         history = model.fit(
             X_train,
             y_train,

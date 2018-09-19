@@ -7,6 +7,12 @@ files = {}
 archive_dir = '../data/jse'
 
 def analyze_sets():
+    """
+    Perform basic analysis on datasets in archive dir above, extract most, middle and least
+    volatile stocks by variance.
+
+    Plots the stocks.
+    """
     files = {}
     sets = {}
     for _file in os.listdir(archive_dir):
@@ -52,6 +58,9 @@ def analyze_sets():
 
 
 def remove_below_n_lines(n):
+    """
+    Remove datasets with less than N datapoints
+    """
     for _file in os.listdir(archive_dir):
         print (_file)
         _file_ = open(os.path.join(archive_dir, _file), 'rb')

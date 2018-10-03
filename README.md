@@ -43,5 +43,5 @@ Two concept drift detection methods implemented were the Page-Hinkley (PH) and E
 
 #### Final results:
 <p align="center">
-<img align="center" width="75%" height="75%"  src="FinalResults.png">
+<img align="center"   src="FinalResults.png">
 </p>

@@ -31,3 +31,17 @@ Extracted classes on the source dataset             |  Extracted classes (standa
 <img align="center" width="75%" height="75%"  src="naspers_lstm_BEST.png">
 </p>
 
+### Concept Drift:
+#### Intro
+Concept drift is when the underlying data changes due to some unknown or unforeseen cause, making it so your machine learning models predictions become less accurate. Machine learning models must be able to identify and deal with multiple changing concepts as time goes on.
+
+#### Process
+Two concept drift detection methods implemented were the Page-Hinkley (PH) and Early Drift Detection Method (EDDM) detectors. These were paired with three mitigation strategies: 
+1. The fixed sliding window, used a fixed number of data points to make a prediction.
+2. The adjusting sliding window, used varying number of data points depending on if drifts were detected or not to make a prediction.
+3. An ensemble approach, train four models on their own set of data and take a averaged prediction.
+
+#### Final results:
+<p align="center">
+<img align="center" width="75%" height="75%"  src="FinalResults.png">
+</p>

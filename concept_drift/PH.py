@@ -33,13 +33,14 @@ class PageHinkley:
         :return: boolean
         """
         self.__detect_drift(x)
-        #raw_input()
+
         return self.change_detected
 
     def __detect_drift(self, x):
         """
         Concept drift detection following the formula from 'Knowledge Discovery from Data Streams' by João Gamma (p. 76)
         :param x: input data
+        Follows PageHinkley algorithm for drift detection from the MOA git
         """
         # calculate the average and sum
         self.x_mean = self.x_mean + (x - self.x_mean) / self.m_n;

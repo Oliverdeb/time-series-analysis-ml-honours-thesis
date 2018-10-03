@@ -3,22 +3,24 @@ import math
 
 class EDDM:
     def __init__(self):
-        self.FDDM_OUTCONTROL = 0.9
-        self.FDDM_WARNING = 0.95
-        self.FDDM_MINNUMINSTANCES = 30
-        self.m_numErrors = 0
-        self.m_minNumErrors = 30
-        self.m_n = 1
-        self.m_d = 0
-        self.m_lastd = 0
-        self.m_mean = 0.0
-        self.m_stdTemp = 0.0
-        self.m_m2smax = 0.0
-        self.change_detected = False
-        self.isWarningZone = False
-        self.estimation = 0.0
-        self.delay = 0
+        super().__init__()
 
+        self.WARNING_LEVEL = 0.95
+        self.OUT_CONTROL_LEVEL = 0.9
+
+        self.MINIMUM_NUM_INSTANCES = 30
+        self.NUM_INSTANCES_SEEN = 0
+
+        self.MINIMUM_NUM_ERRORS = 30
+        self.NUM_ERRORS = 0
+
+        self.P = 0.0  # mean
+        self.S_TEMP = 0.0
+        self.M2S_max = 0
+
+        self.LATEST_E_LOCATION = 0
+        self.SECOND_LATEST_E_LOCATION = 0
+        self.drift_status = False
 
 
     def __reset_params(self):
@@ -26,57 +28,56 @@ class EDDM:
         Every time a change has been detected, all the collected statistics are reset.
         :return:
         """
-        self.m_numErrors = 0
-        self.m_minNumErrors = 30
-        self.m_n = 1
-        self.m_d = 0
-        self.m_lastd = 0
-        self.m_mean = 0.0
-        self.m_stdTemp = 0.0
-        self.m_m2smax = 0.0
-        self.change_detected = False
-        self.isWarningZone = False
-        self.estimation = 0.0
+        self.P = 0.0
+        self.S_TEMP = 0.0
+        self.NUM_ERRORS = 0
+        self.M2S_max = 0
 
+        self.LATEST_E_LOCATION = 0
+        self.SECOND_LATEST_E_LOCATION = 0
+
+        self.NUM_INSTANCES_SEEN = 0
     def set_input(self, x):
         """
         Main method for adding a new data value and automatically detect a possible concept drift.
-        :param x: input data
+        :param x: input True or False
         :return: boolean
         """
         self.__detect_drift(x)
         #raw_input()
-        return self.change_detected
+        return self.drift_status
 
     def __detect_drift(self, x):
         """
-        :param x: input data
+        Follows EDDM algorithm from "Early Drift Detection Method" By Manuel Baena-García, José del Campo-Ávila, Raúl Fidalgo-Merino, Rafael Morales Bueno
         """
-        self.m_n +=1
-        if x == 1.0:
-            self.isWarningZone = False
-            self.delay = 0
-            self.m_numErrors +=1
-            self.m_lastd = self.m_d
-            self.m_d = self.m_n -1
-            self.distance = self.m_d - self.m_lastd
-            self.oldmean = self.m_mean
-            self.m_mean = self.m_mean + (self.distance - self.m_mean)/self.m_numErrors
-            self.estimation = self.m_mean
-            self.m_stdTemp = self.m_stdTemp + (self.distance - self.m_mean) * (self.distance - self.oldmean)
-            self.std = math.sqrt(self.m_stdTemp / self.m_numErrors);
-            self.m2s = self.m_mean + 2 * self.std
-            if self.m2s > self.m_m2smax:
-                if self.m_n > self.FDDM_MINNUMINSTANCES:
-                    self.m_m2smax = self.m2s
-            else:
-                self.p = self.m2s/self.m_m2smax
-                if (self.m_n > self.FDDM_MINNUMINSTANCES and self.m_numErrors > self.m_minNumErrors and self.p < self.FDDM_OUTCONTROL):
-                    self.change_detected = True;
-                elif (self.m_n > self.FDDM_MINNUMINSTANCES and self.m_numErrors > self.m_minNumErrors and self.p < self.FDDM_WARNING):
-                    self.isWarningZone = True
-                else:
-                    self.isWarningZone = False
+        self.drift_status = False
 
-        if self.change_detected:
-            self.__reset_params()
+        self.NUM_INSTANCES_SEEN += 1
+        if x is False:
+            warning_status = False
+            self.NUM_ERRORS += 1
+
+            self.SECOND_LATEST_E_LOCATION = self.LATEST_E_LOCATION
+            self.LATEST_E_LOCATION = self.NUM_INSTANCES_SEEN
+            distance = self.LATEST_E_LOCATION - self.SECOND_LATEST_E_LOCATION
+
+            old_p = self.P
+            self.P += (distance - self.P) / self.NUM_ERRORS
+            self.S_TEMP += (distance - self.P) * (distance - old_p)
+
+            s = math.sqrt(self.S_TEMP / self.NUM_ERRORS)
+            m2s = self.P + 2 * s
+
+            if self.NUM_INSTANCES_SEEN > self.MINIMUM_NUM_INSTANCES:
+                if m2s > self.M2S_max:
+                    self.M2S_max = m2s
+                elif self.NUM_ERRORS > self.MINIMUM_NUM_ERRORS:
+                    r = m2s / self.M2S_max
+                    if r < self.WARNING_LEVEL:
+                        warning_status = True
+                    if r < self.OUT_CONTROL_LEVEL:
+                        self.__reset_params()
+                        self.drift_status = True
+                    else:
+                        warning_status = False

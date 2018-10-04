@@ -45,3 +45,22 @@ Two concept drift detection methods implemented were the Page-Hinkley (PH) and E
 <p align="center">
 <img align="center"   src="FinalResults.png">
 </p>
+
+### Trend Lines:
+#### Intro
+Trend lines are used as a feature extraction technique. Machine learning models are used to make predictions using these features. Trend lines are a smoothing additive that can represent the local change of a time series. Trends are represented by a slope and a duration.
+
+#### Process
+1. Extract trend lines from the financial time series data. Four segmentation algorithms were used to extract the trend lines.
+2. Train two types of machine learning models using these trend lines as input to predict the next trend lines in the time series.
+3. Evaluate trend lines predicted and compare the results to only using point data. 
+<p align="center">
+<img align="center"   src="wrong_trends.png">
+</p>
+
+#### Final results:
+Trend lines performed worse than the baseline, which was a MLP trained on the point data. The graph below shows the best predicted trends vs actual trend lines. The best segmentation algorithm being the Sliding Window approach.
+<p align="center">
+<img align="center"   src="predictedvsactualtrend.png">
+</p>
+

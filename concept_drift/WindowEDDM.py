@@ -1,4 +1,4 @@
-# Multilayer Perceptron to Predict International Airline Passengers (t+1, given t, t-1, t-2)
+
 import numpy
 import matplotlib.pyplot as plt
 from pandas import read_csv
